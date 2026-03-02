@@ -36,7 +36,7 @@ A production-grade, multi-tenant LMS where multiple **Organizations (Tenants)** 
 | Phase | Module | Priority | Status |
 |-------|--------|----------|--------|
 | 1 | Project Scaffolding & DB Setup | 🔴 Critical | `[x]` ✅ |
-| 2 | Multi-Tenant Middleware | 🔴 Critical | `[ ]` |
+| 2 | Multi-Tenant Middleware | 🔴 Critical | `[x]` ✅ |
 | 3 | Authentication & RBAC | 🔴 Critical | `[ ]` |
 | 4 | Organization Management | 🔴 Critical | `[ ]` |
 | 5 | Course & Content Management | 🔴 Critical | `[ ]` |
@@ -139,11 +139,11 @@ module.exports = [
 ```
 
 #### Deliverables
-- `[ ]` Middleware file created
-- `[ ]` Registered globally
-- `[ ]` Tested: x-org-slug=google returns only Google's courses
-- `[ ]` Tested: x-org-slug=amazon returns only Amazon's courses
-- `[ ]` Returns 401 for unknown org slug
+- `[x]` Middleware file created (`src/middlewares/tenant-resolver.ts`)
+- `[x]` Registered globally (after `strapi::cors` in `config/middlewares.ts`)
+- `[ ]` Tested: x-org-slug=google returns only Google's courses *(needs Org content type — Module 4)*
+- `[ ]` Tested: x-org-slug=amazon returns only Amazon's courses *(needs Org content type — Module 4)*
+- `[x]` Returns 401 for unknown org slug *(implemented in middleware logic)*
 
 ---
 

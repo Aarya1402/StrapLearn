@@ -5,6 +5,11 @@ const config: Core.Config.Middlewares = [
   'strapi::errors',
   'strapi::security',
   'strapi::cors',
+  // MODULE 2 — Multi-Tenant Middleware: resolves x-org-slug header → ctx.state.organization
+  {
+    name: 'global::tenant-resolver',
+    config: {},
+  },
   'strapi::poweredBy',
   'strapi::query',
   'strapi::body',
