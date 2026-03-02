@@ -37,8 +37,8 @@ A production-grade, multi-tenant LMS where multiple **Organizations (Tenants)** 
 |-------|--------|----------|--------|
 | 1 | Project Scaffolding & DB Setup | 🔴 Critical | `[x]` ✅ |
 | 2 | Multi-Tenant Middleware | 🔴 Critical | `[x]` ✅ |
-| 3 | Authentication & RBAC | 🔴 Critical | `[ ]` |
-| 4 | Organization Management | 🔴 Critical | `[ ]` |
+| 3 | Authentication & RBAC | 🔴 Critical | `[x]` ✅ |
+| 4 | Organization Management | 🔴 Critical | `[~]` 🛠️ |
 | 5 | Course & Content Management | 🔴 Critical | `[ ]` |
 | 6 | Lesson Management | 🔴 Critical | `[ ]` |
 | 7 | Enrollment System | 🟠 High | `[ ]` |
@@ -176,12 +176,13 @@ GET  /api/auth/me       → returns current user with org
 ```
 
 #### Deliverables
-- `[ ]` Custom roles created in Strapi Admin
-- `[ ]` User content type extended with `organization` + `role_type`
-- `[ ]` Login/Register API working
-- `[ ]` Auth context/provider in Next.js
-- `[ ]` Protected routes via middleware (`middleware.ts`)
-- `[ ]` Role-based redirects (admin → /dashboard/admin, student → /dashboard/student)
+- `[x]` Custom roles created in Strapi Admin *(via GUI: Org Admin, Instructor, Student)*
+- `[x]` User content type extended with `role_type` *(schema.json extension)*
+- `[ ]` `organization` relation on User *(added in Module 4 after Org content type exists)*
+- `[x]` Login/Register API working (`/api/auth/login`, `/api/auth/register`)
+- `[x]` Auth context/provider in Next.js (`src/context/AuthContext.tsx`)
+- `[x]` Protected routes via middleware (`src/middleware.ts`)
+- `[x]` Role-based redirects (org_admin → /dashboard/admin, instructor → /dashboard/instructor, student → /dashboard/student)
 
 ---
 
@@ -223,11 +224,12 @@ module.exports = {
 ```
 
 #### Deliverables
-- `[ ]` Organization content type created
-- `[ ]` Auto-slug lifecycle hook working
-- `[ ]` Org Admin can only see their own org data
-- `[ ]` Super Admin can manage all orgs
-- `[ ]` Org list page in Next.js Admin panel
+- `[ ]` Organization content type created *(via GUI — see instructions above)*
+- `[x]` Auto-slug lifecycle hook (`src/api/organization/content-types/organization/lifecycles.ts`)
+- `[ ]` Org Admin can only see their own org data *(configured via Strapi permissions after content type is created)*
+- `[ ]` Super Admin can manage all orgs *(configured via Strapi permissions)*
+- `[x]` Org list page in Next.js Admin panel (`/dashboard/admin/organizations`)
+- `[x]` Org detail/edit page (`/dashboard/admin/organizations/[id]`)
 
 ---
 
