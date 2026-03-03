@@ -75,6 +75,18 @@
         "instructor",
         "student"
       ]
+    },
+    "organization": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::organization.organization",
+      "inversedBy": "users"
+    },
+    "instructedCourses": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::course.course",
+      "mappedBy": "instructor"
     }
   }
 }

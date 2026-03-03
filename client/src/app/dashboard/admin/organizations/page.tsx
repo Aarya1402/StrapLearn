@@ -1,12 +1,12 @@
 import { requireRole, getCurrentJwt } from '@/lib/server-auth';
-import { getAllOrganizations } from '@/lib/organization';
+import { getAllOrganizations, type Organization } from '@/lib/organization';
 import { createOrganizationAction } from '@/actions/organization.actions';
 
 export default async function OrganizationsPage() {
   await requireRole('org_admin');
   const jwt = (await getCurrentJwt())!;
 
-  let orgs = [];
+  let orgs: Organization[] = [];
   let error = '';
   try {
     orgs = await getAllOrganizations(jwt);
@@ -45,7 +45,7 @@ export default async function OrganizationsPage() {
               <td style={{ padding: 8 }}><code>{org.slug}</code></td>
               <td style={{ padding: 8 }}>{org.isActive ? '✅ Active' : '❌ Inactive'}</td>
               <td style={{ padding: 8 }}>
-                <a href={`/dashboard/admin/organizations/${org.id}`}>Edit</a>
+                <a href={`/dashboard/admin/organizations/${org.documentId}`}>Edit</a>
               </td>
             </tr>
           ))}

@@ -23,20 +23,25 @@ export async function login(payload: LoginPayload): Promise<StrapiAuthResponse> 
         throw new Error(err?.error?.message || 'Login failed');
     }
 
-    return res.json();
+    const authData = await res.json();
+
+    // Strapi's login response only returns basic user fields — NOT custom ones like role_type.
+    // We call getMe() with the returned JWT to get the full user object.
+    const fullUser = await getMe(authData.jwt);
+
+    return { jwt: authData.jwt, user: fullUser };
 }
 
 // ─── Register ─────────────────────────────────────────────────────────────────
 
 export async function register(payload: RegisterPayload): Promise<StrapiAuthResponse> {
-    // Strapi's /auth/local/register only accepts: username, email, password
-    // Custom fields like role_type must be set via a follow-up PUT call
-    const { role_type, ...basePayload } = payload;
+    // Uses custom endpoint that accepts role_type server-side
+    // (default /api/auth/local/register rejects custom fields)
 
-    const res = await fetch(`${STRAPI_URL}/api/auth/local/register`, {
+    const res = await fetch(`${STRAPI_URL}/api/auth/local/register-with-role`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(basePayload),
+        body: JSON.stringify(payload),
     });
 
     if (!res.ok) {
@@ -44,32 +49,24 @@ export async function register(payload: RegisterPayload): Promise<StrapiAuthResp
         throw new Error(err?.error?.message || 'Registration failed');
     }
 
-    const authData: StrapiAuthResponse = await res.json();
+    const authData = await res.json();
 
-    // Set role_type via a follow-up PUT using the returned JWT
-    if (role_type) {
-        await fetch(`${STRAPI_URL}/api/users/${authData.user.id}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${authData.jwt}`,
-            },
-            body: JSON.stringify({ role_type }),
-        });
-        authData.user.role_type = role_type;
-    }
+    // Enrich user with full fields (role_type, organization) via getMe()
+    const fullUser = await getMe(authData.jwt);
 
-    return authData;
+    return { jwt: authData.jwt, user: fullUser };
 }
 
 // ─── Get current user (server-side, requires JWT) ────────────────────────────
 
 export async function getMe(jwt: string): Promise<StrapiUser> {
-    // Note: organization populate is added in Module 4 once the content type exists
-    const res = await fetch(`${STRAPI_URL}/api/users/me`, {
-        headers: { Authorization: `Bearer ${jwt}` },
-        cache: 'no-store',
-    });
+    const res = await fetch(
+        `${STRAPI_URL}/api/users/me?populate=organization`,
+        {
+            headers: { Authorization: `Bearer ${jwt}` },
+            cache: 'no-store',
+        }
+    );
 
     if (!res.ok) {
         throw new Error('Failed to fetch user');

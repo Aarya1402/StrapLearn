@@ -11,6 +11,7 @@ const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337'
 
 export interface Organization {
     id: number;
+    documentId: string;  // Strapi v5: use this in REST API URLs
     name: string;
     slug: string;
     primaryColor?: string;
@@ -32,11 +33,11 @@ export async function getAllOrganizations(jwt: string): Promise<Organization[]> 
     return data.data;
 }
 
-// ─── Get single organization by ID ──────────────────────────────────────────
+// ─── Get single organization by documentId (Strapi v5) ──────────────────────
 
-export async function getOrganizationById(id: number, jwt: string): Promise<Organization> {
+export async function getOrganizationById(documentId: string, jwt: string): Promise<Organization> {
     const res = await fetch(
-        `${STRAPI_URL}/api/organizations/${id}?populate=logo`,
+        `${STRAPI_URL}/api/organizations/${documentId}?populate=logo`,
         {
             headers: { Authorization: `Bearer ${jwt}` },
             cache: 'no-store',
