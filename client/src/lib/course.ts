@@ -11,7 +11,10 @@ const COURSE_POPULATE =
     '&populate[organization]=true' +
     '&populate[instructor]=true' +
     '&populate[category]=true' +
-    '&populate[lessons][sort]=order:asc';
+    // Strapi v5: nested populate with sort must use array-index format.
+    // 'populate[lessons][sort]=order:asc' is silently ignored because it
+    // uses the object-style nested populate without declaring any fields.
+    '&populate[lessons][sort][0]=order%3Aasc';
 
 // ─── Public: published courses (tenant-filtered by org slug) ─────────────────
 
