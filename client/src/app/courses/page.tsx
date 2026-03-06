@@ -38,7 +38,7 @@ export default async function CoursesPage() {
               </p>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontWeight: 'bold' }}>
-                  {course.isFree ? '🆓 Free' : `$${course.price ?? 0}`}
+                  {course.isFree ? '🆓 Free' : `₹${course.price ?? 0}`}
                 </span>
                 <span style={{ fontSize: 12, color: '#666' }}>
                   {course.duration ? `${course.duration} min` : ''}

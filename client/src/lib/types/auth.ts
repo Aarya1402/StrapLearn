@@ -7,11 +7,13 @@ export type RoleType = 'org_admin' | 'instructor' | 'student';
 
 export interface StrapiUser {
     id: number;
+    documentId: string;          // Strapi v5: string UUID used in REST API relations
     username: string;
     email: string;
     role_type: RoleType;
     organization?: {
         id: number;
+        documentId: string;
         name: string;
         slug: string;
     };

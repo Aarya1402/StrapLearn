@@ -40,7 +40,7 @@ export default async function CourseDetailPage({ params }: Props) {
       {/* Enroll CTA */}
       <div style={{ border: '1px solid #ddd', borderRadius: 8, padding: 20, textAlign: 'center' }}>
         <p style={{ fontSize: 24, fontWeight: 'bold', margin: '0 0 8px' }}>
-          {course.isFree ? '🆓 Free' : `$${course.price ?? 0}`}
+          {course.isFree ? '🆓 Free' : `₹${course.price ?? 0}`}
         </p>
         <a
           href="/register"

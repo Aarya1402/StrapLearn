@@ -35,7 +35,6 @@ export default async function OrganizationDetailPage({ params }: Props) {
 
       <form
         action={updateOrganizationAction.bind(null, documentId)}
-        encType="multipart/form-data"
         style={{ display: 'flex', flexDirection: 'column', gap: 14 }}
       >
         <label>

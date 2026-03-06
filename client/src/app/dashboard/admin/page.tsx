@@ -1,7 +1,11 @@
-import { requireRole } from '@/lib/server-auth';
+import { requireRole, getCurrentJwt } from '@/lib/server-auth';
+import { getAllCoursesForDashboard } from '@/lib/course';
 
 export default async function AdminDashboardPage() {
   const user = await requireRole('org_admin');
+  const jwt = (await getCurrentJwt())!;
+
+  const courses = await getAllCoursesForDashboard(jwt, user.organization?.slug);
 
   return (
     <div>
@@ -13,7 +17,7 @@ export default async function AdminDashboardPage() {
         <h2>Overview</h2>
         <ul>
           <li>Total Users: <em>(available in Module 10)</em></li>
-          <li>Total Courses: <em>(available in Module 5)</em></li>
+          <li>Total Courses: <strong>{courses.length}</strong></li>
           <li>Completion Rate: <em>(available in Module 8)</em></li>
         </ul>
       </section>
@@ -21,7 +25,12 @@ export default async function AdminDashboardPage() {
         <h2>Quick Links</h2>
         <ul>
           <li><a href="/dashboard/admin/users">Manage Users</a></li>
-          <li><a href="/dashboard/admin/courses">Manage Courses</a></li>
+          <li><a href="/dashboard/courses">Manage Courses</a></li>
+          <li>
+            <a href="/dashboard/courses" style={{ display: 'inline-block', marginTop: '10px', padding: '8px 16px', background: '#000', color: '#fff', textDecoration: 'none', borderRadius: '4px' }}>
+              See All Courses
+            </a>
+          </li>
         </ul>
       </section>
     </div>

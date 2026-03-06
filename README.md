@@ -240,18 +240,18 @@ module.exports = {
 #### Strapi Content Type: `Course`
 | Field | Type | Required |
 |-------|------|----------|
-| `title` | String | ✅ |
-| `slug` | UID (auto from title) | ✅ |
-| `description` | Rich Text | ✅ |
-| `thumbnail` | Media (single image) | ❌ |
-| `level` | Enum: beginner/intermediate/advanced | ✅ |
-| `duration` | Integer (minutes) | ❌ |
-| `isFree` | Boolean (default: false) | ✅ |
-| `price` | Decimal | ❌ |
-| `organization` | Relation (Many-to-One → Organization) | ✅ |
-| `instructor` | Relation (Many-to-One → User) | ✅ |
+| `title` | String | :white_check_mark: |
+| `slug` | UID (auto from title) | :white_check_mark: |
+| `description` | Rich Text | :white_check_mark: |
+| `thumbnail` | Media (single image) | :x: |
+| `level` | Enum: beginner/intermediate/advanced | :white_check_mark: |
+| `duration` | Integer (minutes) | :x: |
+| `isFree` | Boolean (default: false) | :white_check_mark: |
+| `price` | Decimal | :x: |
+| `organization` | Relation (Many-to-One → Organization) | :white_check_mark: |
+| `instructor` | Relation (Many-to-One → User) | :white_check_mark: |
 | `lessons` | Relation (One-to-Many → Lesson) | — |
-| `category` | Relation (Many-to-One → Category) | ❌ |
+| `category` | Relation (Many-to-One → Category) | :x: |
 | `publishedAt` | DateTime (Draft & Publish) | — |
 
 #### Lifecycle Hook: Validation + Slug

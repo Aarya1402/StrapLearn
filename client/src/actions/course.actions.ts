@@ -26,7 +26,10 @@ async function uploadThumbnail(file: File, jwt: string): Promise<number | null> 
     return uploaded?.[0]?.id ?? null;
 }
 
-// ─── Create Course (saves as DRAFT) ──────────────────────────────────────────
+// ─── Create Course ────────────────────────────────────────────────────────────
+// org_admin → course is auto-published by Strapi controller
+// instructor → course is saved as draft until approved by org_admin
+// instructor/organization are always set server-side in the Strapi controller
 
 export async function createCourseAction(formData: FormData) {
     const jwt = await getCurrentJwt();
@@ -36,6 +39,10 @@ export async function createCourseAction(formData: FormData) {
     const thumbnailId = thumbnailFile && thumbnailFile.size > 0
         ? await uploadThumbnail(thumbnailFile, jwt) : null;
 
+    // `instructorId` is only present when an org_admin has picked a specific
+    // instructor from the dropdown in the New Course form.
+    const instructorId = (formData.get('instructorId') as string | null)?.trim() || undefined;
+
     const payload: Record<string, unknown> = {
         title: formData.get('title'),
         description: formData.get('description'),
@@ -43,8 +50,10 @@ export async function createCourseAction(formData: FormData) {
         isFree: formData.get('isFree') === 'true',
         price: formData.get('price') ? Number(formData.get('price')) : undefined,
         duration: formData.get('duration') ? Number(formData.get('duration')) : undefined,
-        organization: formData.get('organizationId') || undefined,
         category: formData.get('categoryId') || undefined,
+        // instructor is only passed when admin picks someone else from the dropdown
+        ...(instructorId ? { instructor: instructorId } : {}),
+        // organization + instructor assignment is finalized in the Strapi controller
     };
     if (thumbnailId) payload.thumbnail = thumbnailId;
 
@@ -56,6 +65,7 @@ export async function createCourseAction(formData: FormData) {
 
     if (!res.ok) {
         const err = await res.json();
+        console.error('[createCourseAction] Strapi error:', JSON.stringify(err, null, 2));
         throw new Error(err?.error?.message || 'Failed to create course');
     }
 
@@ -101,33 +111,47 @@ export async function updateCourseAction(documentId: string, formData: FormData)
 }
 
 // ─── Publish Course (org_admin only) ─────────────────────────────────────────
+// Strapi v5: POST /:id/publish
 
 export async function publishCourseAction(documentId: string) {
     const jwt = await getCurrentJwt();
     if (!jwt) throw new Error('Unauthorized');
 
-    const res = await fetch(`${STRAPI_URL}/api/courses/${documentId}/actions/publish`, {
+    const res = await fetch(`${STRAPI_URL}/api/courses/${documentId}/publish`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${jwt}` },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${jwt}` },
+        body: JSON.stringify({ data: {} }),
     });
 
-    if (!res.ok) throw new Error('Failed to publish course');
+    if (!res.ok) {
+        let err;
+        try { err = await res.json(); } catch (e) { }
+        console.error('Publish error from backend:', err);
+        throw new Error(err?.error?.message || 'Failed to publish course');
+    }
     revalidatePath('/dashboard/courses');
     redirect('/dashboard/courses');
 }
 
 // ─── Unpublish Course ────────────────────────────────────────────────────────
+// Strapi v5: POST /:id/actions/unpublish to revert to draft
 
 export async function unpublishCourseAction(documentId: string) {
     const jwt = await getCurrentJwt();
     if (!jwt) throw new Error('Unauthorized');
 
-    const res = await fetch(`${STRAPI_URL}/api/courses/${documentId}/actions/unpublish`, {
+    const res = await fetch(`${STRAPI_URL}/api/courses/${documentId}/unpublish`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${jwt}` },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${jwt}` },
+        body: JSON.stringify({ data: {} }),
     });
 
-    if (!res.ok) throw new Error('Failed to unpublish course');
+    if (!res.ok) {
+        let err;
+        try { err = await res.json(); } catch (e) { }
+        console.error('Unpublish error from backend:', err);
+        throw new Error(err?.error?.message || 'Failed to unpublish course');
+    }
     revalidatePath('/dashboard/courses');
     redirect('/dashboard/courses');
 }

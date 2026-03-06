@@ -1,21 +1,28 @@
-import { requireRole, getCurrentJwt, getCurrentUser } from '@/lib/server-auth';
-import { getAllCoursesForDashboard } from '@/lib/course';
+import { requireRole, getCurrentJwt } from '@/lib/server-auth';
+import { getAllCoursesForDashboard, getMyCourses } from '@/lib/course';
 import { publishCourseAction, unpublishCourseAction, deleteCourseAction } from '@/actions/course.actions';
 import type { Course } from '@/lib/types/course';
 
-export default async function DashboardCoursesPage() {
+export default async function DashboardCoursesPage({ 
+  searchParams 
+}: { 
+  searchParams: Promise<{ filter?: string }> 
+}) {
   const user = await requireRole('org_admin', 'instructor');
   const jwt = (await getCurrentJwt())!;
+  const filter = (await searchParams).filter;
 
-  const courses: Course[] = await getAllCoursesForDashboard(
-    jwt,
-    user.organization?.slug
-  );
+  // filter=my → call the dedicated /courses/my endpoint (Strapi v5 blocks filtering
+  // on plugin::users-permissions.user relations through the standard REST API).
+  // No filter → fetch all courses in the org.
+  const courses: Course[] = filter === 'my'
+    ? await getMyCourses(jwt)
+    : await getAllCoursesForDashboard(jwt, user.organization?.slug);
 
   return (
     <div style={{ fontFamily: 'monospace' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h1>My Courses</h1>
+        <h1>{filter === 'my' ? 'My Courses' : 'All Courses'}</h1>
         <a href="/dashboard/courses/new" style={{ padding: '8px 16px', background: '#000', color: '#fff', textDecoration: 'none' }}>
           + New Course
         </a>
@@ -44,7 +51,7 @@ export default async function DashboardCoursesPage() {
                 <code style={{ fontSize: 11, color: '#888' }}>{course.slug}</code>
               </td>
               <td style={{ padding: 8 }}>{course.level}</td>
-              <td style={{ padding: 8 }}>{course.isFree ? '🆓 Free' : `$${course.price ?? 0}`}</td>
+              <td style={{ padding: 8 }}>{course.isFree ? '🆓 Free' : `₹${course.price ?? 0}`}</td>
               <td style={{ padding: 8 }}>
                 {course.publishedAt ? '✅ Published' : '📝 Draft'}
               </td>

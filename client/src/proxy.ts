@@ -14,6 +14,9 @@ import type { NextRequest } from 'next/server';
 // Routes that don't require authentication
 const PUBLIC_PATHS = ['/', '/login', '/register'];
 
+// Path PREFIXES that are always public (course listing + detail pages)
+const PUBLIC_PREFIXES = ['/courses'];
+
 export function proxy(request: NextRequest) {
     const { pathname } = request.nextUrl;
     const jwt = request.cookies.get('strapi_jwt')?.value;
@@ -22,6 +25,7 @@ export function proxy(request: NextRequest) {
     // ── 1. Always allow: public paths, API routes, Next.js internals ─────────────
     if (
         PUBLIC_PATHS.includes(pathname) ||
+        PUBLIC_PREFIXES.some((p) => pathname.startsWith(p)) ||
         pathname.startsWith('/api/') ||
         pathname.startsWith('/_next/')
     ) {
@@ -42,8 +46,16 @@ export function proxy(request: NextRequest) {
     // ── 3. Role-based access — only enforce when role cookie is present ───────────
     if (roleType && pathname.startsWith('/dashboard')) {
         const ROLE_ALLOWED: Record<string, string[]> = {
-            org_admin: ['/dashboard/admin', '/dashboard/instructor', '/dashboard/student'],
-            instructor: ['/dashboard/instructor', '/dashboard/student'],
+            org_admin: [
+                '/dashboard/admin',
+                '/dashboard/instructor',
+                '/dashboard/courses',   // course & lesson management (Module 5+6)
+                '/dashboard/student',
+            ],
+            instructor: [
+                '/dashboard/instructor',
+                '/dashboard/courses',   // create courses and lessons (Module 5+6)
+            ],
             student: ['/dashboard/student'],
         };
         const allowed = ROLE_ALLOWED[roleType] ?? [];

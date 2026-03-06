@@ -12,10 +12,8 @@ export default async function NewOrganizationPage() {
       <h1>Create New Organization</h1>
       <hr />
 
-      {/* encType required for file uploads in forms */}
       <form
         action={createOrganizationAction}
-        encType="multipart/form-data"
         style={{ display: 'flex', flexDirection: 'column', gap: 14 }}
       >
         <label>

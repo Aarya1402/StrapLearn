@@ -1,5 +1,5 @@
 /**
- * MODULE 5 — Course Types
+ * MODULE 5/6 — Course & Lesson Types
  */
 
 export interface Category {
@@ -8,6 +8,20 @@ export interface Category {
     name: string;
     slug: string;
     icon?: string;
+}
+
+export interface Lesson {
+    id: number;
+    documentId: string;
+    title: string;
+    slug: string;
+    content?: any[];        // Strapi blocks format
+    videoUrl?: string;
+    videoProvider?: 'youtube' | 'vimeo' | 'upload';
+    duration?: number;      // seconds
+    order: number;
+    isFree: boolean;
+    course?: { documentId: string; title: string; slug: string };
 }
 
 export interface Course {
@@ -20,9 +34,11 @@ export interface Course {
     duration?: number;       // minutes
     isFree: boolean;
     price?: number;
-    publishedAt: string | null; // null = draft
+    publishedAt: string | null;
+    updatedAt?: string;
     thumbnail?: { url: string };
     organization?: { id: number; documentId: string; name: string; slug: string };
     instructor?: { id: number; documentId: string; username: string; email: string };
     category?: Category;
+    lessons?: Lesson[];
 }

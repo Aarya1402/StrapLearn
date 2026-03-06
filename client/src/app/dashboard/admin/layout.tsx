@@ -19,7 +19,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <ul style={{ listStyle: 'none', padding: 0, minWidth: 160 }}>
           <li><a href="/dashboard/admin">Overview</a></li>
           <li><a href="/dashboard/admin/users">Users</a></li>
-          <li><a href="/dashboard/admin/courses">Courses</a></li>
+          <li><a href="/dashboard/courses">Courses</a></li>
         </ul>
         <main style={{ flex: 1 }}>{children}</main>
       </aside>
