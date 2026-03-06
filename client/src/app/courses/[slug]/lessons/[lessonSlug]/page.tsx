@@ -1,5 +1,7 @@
-import { getCourseBySlug } from '@/lib/course';
-import { notFound } from 'next/navigation';
+import { getCourseBySlug, checkEnrollment } from '@/lib/course';
+import FinishCourseButton from '@/components/FinishCourseButton';
+import { getCurrentJwt, requireAuth } from '@/lib/server-auth';
+import { notFound, redirect } from 'next/navigation';
 import type { ElementType } from 'react';
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337';
@@ -77,7 +79,6 @@ function renderBlock(block: any, i: number) {
       );
 
     case 'heading': {
-      // level is 1–6; cast to a valid HTML tag
       const Tag = `h${block.level}` as ElementType;
       return (
         <Tag key={i} style={{ marginTop: 24, marginBottom: 8 }}>
@@ -124,7 +125,6 @@ function renderBlock(block: any, i: number) {
     }
 
     default:
-      // Unknown block — render plain text fallback
       return (
         <p key={i} style={{ margin: '0 0 12px', lineHeight: 1.7 }}>
           {block.children?.map((c: any) => c.text).join('')}
@@ -148,15 +148,34 @@ export default async function LessonViewerPage({ params }: Props) {
   const prevLesson = lessons[currentIndex - 1];
   const nextLesson = lessons[currentIndex + 1];
 
+  // Access check
+  let canAccess = lesson.isFree;
+  const jwt = await getCurrentJwt();
+  
+  if (!canAccess && jwt) {
+    const isEnrolled = await checkEnrollment(course.documentId, jwt);
+    if (isEnrolled) canAccess = true;
+    
+    // Also allow org_admins/instructors to see their own org courses
+    if (!canAccess) {
+       const user = await requireAuth();
+       if (user.role_type === 'org_admin' || user.role_type === 'instructor') {
+          // Simplification: allow all instructors/admins for now
+          // (Backend policy will still restrict if needed)
+          canAccess = true;
+       }
+    }
+  }
+
   return (
     <div style={{ fontFamily: 'monospace', display: 'flex', gap: 24, maxWidth: 1100, margin: '0 auto', padding: 24 }}>
 
-      {/* ── Sidebar — lesson list ── */}
+      {/* Sidebar — lesson list */}
       <aside style={{ width: 260, flexShrink: 0, borderRight: '1px solid #eee', paddingRight: 16 }}>
         <a href={`/courses/${courseSlug}`} style={{ fontSize: 13, color: '#666' }}>← {course.title}</a>
         <h3 style={{ marginTop: 16 }}>Lessons</h3>
         <ol style={{ paddingLeft: 16, margin: 0 }}>
-          {lessons.map((l) => (
+          {lessons.map((l: any) => (
             <li
               key={l.documentId}
               style={{
@@ -176,38 +195,53 @@ export default async function LessonViewerPage({ params }: Props) {
         </ol>
       </aside>
 
-      {/* ── Main content ── */}
+      {/* Main content */}
       <main style={{ flex: 1 }}>
-        <h1>{lesson.title}</h1>
-        {lesson.duration && (
-          <p style={{ color: '#666', fontSize: 13 }}>
-            ⏱ {Math.floor(lesson.duration / 60)}m {lesson.duration % 60}s
-          </p>
-        )}
-
-        {/* Video player */}
-        {lesson.videoUrl && (
-          <div style={{ marginBottom: 24 }}>
-            {renderVideoEmbed(lesson.videoUrl, lesson.videoProvider)}
+        {!canAccess ? (
+          <div style={{ textAlign: 'center', padding: '60px 20px', background: '#f9fafb', borderRadius: 12 }}>
+            <h2 style={{ fontSize: 32, marginBottom: 16 }}>🔒 Enrolled Students Only</h2>
+            <p style={{ color: '#666', marginBottom: 24 }}>This lesson is part of a premium course. Please enroll to unlock the content.</p>
+            <a
+              href={`/courses/${courseSlug}`}
+              style={{ display: 'inline-block', padding: '12px 32px', background: '#000', color: '#fff', textDecoration: 'none', borderRadius: 6 }}
+            >
+              Back to Course
+            </a>
           </div>
-        )}
+        ) : (
+          <>
+            <h1>{lesson.title}</h1>
+            {lesson.duration && (
+              <p style={{ color: '#666', fontSize: 13 }}>
+                ⏱ {Math.floor(lesson.duration / 60)}m {lesson.duration % 60}s
+              </p>
+            )}
 
-        {/* Rich text — all Strapi block types handled */}
-        {lesson.content && lesson.content.length > 0 && (
-          <div style={{ lineHeight: 1.7 }}>
-            {lesson.content.map((block: any, i: number) => renderBlock(block, i))}
-          </div>
-        )}
+            {/* Video player */}
+            {lesson.videoUrl && (
+              <div style={{ marginBottom: 24 }}>
+                {renderVideoEmbed(lesson.videoUrl, lesson.videoProvider)}
+              </div>
+            )}
 
-        {/* Prev / Next navigation */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 40, borderTop: '1px solid #eee', paddingTop: 16 }}>
-          {prevLesson
-            ? <a href={`/courses/${courseSlug}/lessons/${prevLesson.slug}`}>← {prevLesson.title}</a>
-            : <span />}
-          {nextLesson
-            ? <a href={`/courses/${courseSlug}/lessons/${nextLesson.slug}`}>{nextLesson.title} →</a>
-            : <a href={`/courses/${courseSlug}`}>✅ Finish course</a>}
-        </div>
+            {/* Rich text — all Strapi block types handled */}
+            {lesson.content && lesson.content.length > 0 && (
+              <div style={{ lineHeight: 1.7 }}>
+                {lesson.content.map((block: any, i: number) => renderBlock(block, i))}
+              </div>
+            )}
+
+            {/* Prev / Next navigation */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 40, borderTop: '1px solid #eee', paddingTop: 16 }}>
+              {prevLesson
+                ? <a href={`/courses/${courseSlug}/lessons/${prevLesson.slug}`}>← {prevLesson.title}</a>
+                : <span />}
+              {nextLesson
+                ? <a href={`/courses/${courseSlug}/lessons/${nextLesson.slug}`}>{nextLesson.title} →</a>
+                : <FinishCourseButton courseId={course.documentId} courseSlug={courseSlug} />}
+            </div>
+          </>
+        )}
       </main>
     </div>
   );

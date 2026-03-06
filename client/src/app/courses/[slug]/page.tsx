@@ -1,4 +1,6 @@
-import { getCourseBySlug } from '@/lib/course';
+import { getCourseBySlug, checkEnrollment } from '@/lib/course';
+import { getCurrentJwt } from '@/lib/server-auth';
+import { enrollAction } from '@/actions/enrollment.actions';
 import { notFound } from 'next/navigation';
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337';
@@ -9,6 +11,9 @@ export default async function CourseDetailPage({ params }: Props) {
   const { slug } = await params;
   const course = await getCourseBySlug(slug);
   if (!course) notFound();
+
+  const jwt = await getCurrentJwt();
+  const isEnrolled = jwt ? await checkEnrollment(course.documentId, jwt) : false;
 
   return (
     <div style={{ fontFamily: 'monospace', maxWidth: 800, margin: '0 auto', padding: 24 }}>
@@ -63,8 +68,8 @@ export default async function CourseDetailPage({ params }: Props) {
                       {Math.floor(lesson.duration / 60)}m {lesson.duration % 60}s
                     </span>
                   )}
-                  {lesson.isFree
-                    ? <span style={{ fontSize: 11, color: '#10b981', background: '#ecfdf5', padding: '2px 6px', borderRadius: 4 }}>FREE</span>
+                  {lesson.isFree || isEnrolled
+                    ? <span style={{ fontSize: 11, color: '#10b981', background: '#ecfdf5', padding: '2px 6px', borderRadius: 4 }}>VIEW</span>
                     : <span style={{ fontSize: 13, color: '#aaa' }}>🔒</span>
                   }
                 </a>
@@ -80,23 +85,46 @@ export default async function CourseDetailPage({ params }: Props) {
           {course.isFree ? '🆓 Free' : `₹${course.price ?? 0}`}
         </p>
         <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-          {course.lessons && course.lessons.length > 0 && (
+          {isEnrolled ? (
             <a
-              href={`/courses/${slug}/lessons/${course.lessons[0].slug}`}
-              style={{ display: 'inline-block', padding: '12px 32px', background: '#3b82f6', color: '#fff', textDecoration: 'none', borderRadius: 6 }}
+              href={`/courses/${slug}/lessons/${course.lessons?.[0]?.slug}`}
+              style={{ display: 'inline-block', padding: '12px 32px', background: '#10b981', color: '#fff', textDecoration: 'none', borderRadius: 6 }}
             >
-              ▶ Start Learning
+              🚀 Continue Learning
+            </a>
+          ) : jwt ? (
+            <form action={async () => {
+              'use server';
+              await enrollAction(course.documentId, slug);
+            }}>
+              <button
+                type="submit"
+                style={{ display: 'inline-block', padding: '12px 32px', background: '#000', color: '#fff', textDecoration: 'none', border: 'none', borderRadius: 6, cursor: 'pointer' }}
+              >
+                Enroll Now
+              </button>
+            </form>
+          ) : (
+            <a
+              href="/login"
+              style={{ display: 'inline-block', padding: '12px 32px', background: '#000', color: '#fff', textDecoration: 'none', borderRadius: 6 }}
+            >
+              Sign in to Enroll
             </a>
           )}
-          <a
-            href="/register"
-            style={{ display: 'inline-block', padding: '12px 32px', background: '#000', color: '#fff', textDecoration: 'none', borderRadius: 6 }}
-          >
-            Enroll Now
-          </a>
+
+          {!isEnrolled && course.lessons && course.lessons.length > 0 && (
+            <a
+              href={`/courses/${slug}/lessons/${course.lessons[0].slug}`}
+              style={{ display: 'inline-block', padding: '12px 32px', background: '#f3f4f6', color: '#000', textDecoration: 'none', borderRadius: 6 }}
+            >
+              ▶ Preview FREE Lessons
+            </a>
+          )}
         </div>
       </div>
     </div>
   );
 }
+
 

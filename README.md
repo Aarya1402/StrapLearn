@@ -1,6 +1,6 @@
 # 🎓 LMS Core — Enterprise Edition
 
-> **Stack:** Next.js 14 (App Router) · Strapi v5 · PostgreSQL · Clerk Auth · Stripe · TailwindCSS  
+> **Stack:** Next.js 14 · Strapi v5 · PostgreSQL · Clerk Auth · Stripe · TailwindCSS  
 > **Type:** Multi-Tenant SaaS Learning Management System for Corporate Training
 
 ---
@@ -41,8 +41,8 @@ A production-grade, multi-tenant LMS where multiple **Organizations (Tenants)** 
 | 4 | Organization Management | 🔴 Critical | `[~]` 🛠️ |
 | 5 | Course & Content Management | 🔴 Critical | `[x]` ✅ |
 | 6 | Lesson Management | 🔴 Critical | `[x]` ✅ |
-| 7 | Enrollment System | 🟠 High | `[ ]` |
-| 8 | Progress Tracker (Custom API) | 🟠 High | `[ ]` |
+| 7 | Enrollment System | 🟠 High | `[x]` ✅ |
+| 8 | Progress Tracker (Custom API) | 🟠 High | `[~]` 🛠️ |
 | 9 | Assessments & Quizzes | 🟠 High | `[ ]` |
 | 10 | Dashboard & Analytics | 🟡 Medium | `[ ]` |
 | 11 | Notifications System | 🟡 Medium | `[ ]` |
@@ -410,12 +410,12 @@ module.exports = async (policyContext, config, { strapi }) => {
 ```
 
 #### Deliverables
-- `[ ]` Enrollment content type created
-- `[ ]` Enroll API endpoint working
-- `[ ]` Prevents duplicate enrollments
-- `[ ]` `is-enrolled` policy created
-- `[ ]` "Enroll Now" button on course detail page
-- `[ ]` My Courses page for students
+- `[x]` Enrollment content type created
+- `[x]` Enroll API endpoint working
+- `[x]` Prevents duplicate enrollments
+- `[x]` `is-enrolled` policy created
+- `[x]` "Enroll Now" button on course detail page
+- `[x]` My Courses page for students
 
 ---
 

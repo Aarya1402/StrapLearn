@@ -138,3 +138,59 @@ export async function getOrgInstructors(orgDocumentId: string, jwt: string): Pro
     return data.data ?? [];
 }
 
+// ─── Enrollment (Student) ────────────────────────────────────────────────────
+
+export async function enrollInCourse(courseId: string, jwt: string): Promise<boolean> {
+    const res = await fetch(`${STRAPI_URL}/api/enrollments/enroll`, {
+        method: 'POST',
+        headers: {
+            Authorization: `Bearer ${jwt}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ courseId }),
+        cache: 'no-store',
+    });
+
+    if (!res.ok) {
+        const error = await res.json();
+        console.error('Enrollment failed:', error);
+        return false;
+    }
+
+    return true;
+}
+
+export async function getMyEnrollments(jwt: string): Promise<any[]> {
+    const res = await fetch(`${STRAPI_URL}/api/enrollments/me`, {
+        headers: { Authorization: `Bearer ${jwt}` },
+        cache: 'no-store',
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.data ?? [];
+}
+
+export async function checkEnrollment(courseId: string, jwt: string): Promise<boolean> {
+    const enrollments = await getMyEnrollments(jwt);
+    return enrollments.some((e: any) => e.course?.documentId === courseId);
+}
+
+export async function completeCourse(courseId: string, jwt: string): Promise<boolean> {
+    const res = await fetch(`${STRAPI_URL}/api/enrollments/complete`, {
+        method: 'POST',
+        headers: {
+            Authorization: `Bearer ${jwt}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ courseId }),
+        cache: 'no-store',
+    });
+
+    if (!res.ok) {
+        const error = await res.json();
+        console.error('Course completion failed:', error);
+        return false;
+    }
+
+    return true;
+}
