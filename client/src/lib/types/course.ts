@@ -41,4 +41,30 @@ export interface Course {
     instructor?: { id: number; documentId: string; username: string; email: string };
     category?: Category;
     lessons?: Lesson[];
+    quizzes?: Quiz[];
+}
+
+export interface Question {
+    documentId: string;
+    text: string;
+    type: 'mcq' | 'true-false' | 'short-answer';
+    options?: any;
+    correctAnswer: string;
+    points: number;
+}
+
+export interface Quiz {
+    documentId: string;
+    title: string;
+    passingScore: number;
+    timeLimit?: number;
+    questions?: Question[];
+}
+
+export interface QuizAttempt {
+    documentId: string;
+    score: number;
+    isPassed: boolean;
+    attemptedAt: string;
+    answers?: any[];
 }

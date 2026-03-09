@@ -43,7 +43,7 @@ A production-grade, multi-tenant LMS where multiple **Organizations (Tenants)** 
 | 6 | Lesson Management | 🔴 Critical | `[x]` ✅ |
 | 7 | Enrollment System | 🟠 High | `[x]` ✅ |
 | 8 | Progress Tracker (Custom API) | 🟠 High | `[x]` ✅ |
-| 9 | Assessments & Quizzes | 🟠 High | `[ ]` |
+| 9 | Assessments & Quizzes | 🟠 High | `[x]` ✅ |
 | 10 | Dashboard & Analytics | 🟡 Medium | `[ ]` |
 | 11 | Notifications System | 🟡 Medium | `[ ]` |
 | 12 | Content Versioning | 🟡 Medium | `[ ]` |
@@ -583,12 +583,12 @@ GET  /api/quiz/:quizId/results → user's attempt history
 ```
 
 #### Deliverables
-- `[ ]` Quiz, Question, QuizAttempt content types
-- `[ ]` Submit quiz custom endpoint
-- `[ ]` Auto-grading logic for MCQ/True-False
-- `[ ]` Quiz UI component in Next.js
-- `[ ]` Passing score enforcement
-- `[ ]` Quiz results page
+- `[x]` Quiz, Question, QuizAttempt content types
+- `[x]` Submit quiz custom endpoint
+- `[x]` Auto-grading logic for MCQ/True-False
+- `[x]` Quiz UI component in Next.js
+- `[x]` Passing score enforcement
+- `[x]` Quiz results page
 
 ---
 

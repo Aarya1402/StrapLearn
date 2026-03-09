@@ -99,6 +99,12 @@
       "relation": "oneToMany",
       "target": "api::progress.progress",
       "mappedBy": "user"
+    },
+    "quizAttempts": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::quiz-attempt.quiz-attempt",
+      "mappedBy": "user"
     }
   }
 }

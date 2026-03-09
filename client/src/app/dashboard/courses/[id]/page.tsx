@@ -10,8 +10,13 @@ import {
   updateLessonAction,
   deleteLessonAction,
 } from '@/actions/lesson.actions';
+import {
+  createQuizAction,
+  publishQuizAction,
+  deleteQuizAction,
+} from '@/actions/quiz.actions';
 import { notFound } from 'next/navigation';
-import type { Lesson } from '@/lib/types/course';
+import type { Lesson, Quiz } from '@/lib/types/course';
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337';
 
@@ -204,6 +209,77 @@ export default async function EditCoursePage({ params }: Props) {
         <button type="submit"
           style={{ padding: '10px', background: '#3b82f6', color: '#fff', border: 'none', cursor: 'pointer' }}>
           Add Lesson
+        </button>
+      </form>
+
+      {/* ── Quizzes Management ── */}
+      <hr style={{ margin: '32px 0' }} />
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h2 style={{ margin: 0 }}>Quizzes ({course.quizzes?.length || 0})</h2>
+      </div>
+
+      {/* Existing quizzes */}
+      {course.quizzes && course.quizzes.length > 0 && (
+        <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: 12 }}>
+          <thead>
+            <tr style={{ borderBottom: '2px solid #ccc', textAlign: 'left' }}>
+              <th style={{ padding: 6 }}>Title</th>
+              <th style={{ padding: 6 }}>Passing %</th>
+              <th style={{ padding: 6 }}>Status</th>
+              <th style={{ padding: 6 }}>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {course.quizzes.map((quiz: any) => (
+              <tr key={quiz.documentId} style={{ borderBottom: '1px solid #eee' }}>
+                <td style={{ padding: 6 }}>{quiz.title}</td>
+                <td style={{ padding: 6 }}>{quiz.passingScore}%</td>
+                <td style={{ padding: 6, fontSize: 12 }}>
+                    {quiz.publishedAt ? '✅ Pub' : '📝 Draft'}
+                </td>
+                <td style={{ padding: 6, display: 'flex', gap: 8 }}>
+                  <a href={`/dashboard/courses/${documentId}/quizzes/${quiz.documentId}`}
+                    style={{ color: '#3b82f6', fontSize: 13, textDecoration: 'none' }}>Edit Questions</a>
+                  {isAdmin && !quiz.publishedAt && (
+                      <form action={publishQuizAction.bind(null, quiz.documentId, documentId)}>
+                          <button type="submit" style={{ color: '#10b981', border: 'none', background: 'none', cursor: 'pointer', fontSize: 13, padding: 0 }}>Publish</button>
+                      </form>
+                  )}
+                  <form action={deleteQuizAction.bind(null, quiz.documentId, documentId)}
+                    style={{ display: 'inline' }}>
+                    <button type="submit"
+                      style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: 13, padding: 0 }}>
+                      Delete
+                    </button>
+                  </form>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+
+      {/* Add new quiz form */}
+      <h3 style={{ marginTop: 24 }}>+ Add Quiz</h3>
+      <form action={createQuizAction.bind(null, documentId, course.slug)} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <label>Quiz Title *
+          <input name="title" type="text" required placeholder="e.g. Module 1 Assessment"
+            style={{ display: 'block', width: '100%', padding: 8, marginTop: 4 }} />
+        </label>
+        <div style={{ display: 'flex', gap: 12 }}>
+            <label style={{ flex: 1 }}>Passing Score (%)
+              <input name="passingScore" type="number" min="0" max="100" defaultValue="70"
+                style={{ display: 'block', width: '100%', padding: 8, marginTop: 4 }} />
+            </label>
+            <label style={{ flex: 1 }}>Time Limit (min)
+              <input name="timeLimit" type="number" min="0" placeholder="Optional"
+                style={{ display: 'block', width: '100%', padding: 8, marginTop: 4 }} />
+            </label>
+        </div>
+        <input type="hidden" name="courseSlug" value={course.slug} />
+        <button type="submit"
+          style={{ padding: '10px', background: '#3b82f6', color: '#fff', border: 'none', cursor: 'pointer' }}>
+          Add Quiz
         </button>
       </form>
     </div>

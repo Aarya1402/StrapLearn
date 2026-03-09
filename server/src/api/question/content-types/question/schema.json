@@ -1,0 +1,43 @@
+{
+  "kind": "collectionType",
+  "collectionName": "questions",
+  "info": {
+    "singularName": "question",
+    "pluralName": "questions",
+    "displayName": "Question",
+    "description": "Quiz questions"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "text": {
+      "type": "string",
+      "required": true
+    },
+    "type": {
+      "type": "enumeration",
+      "enum": ["mcq", "true-false", "short-answer"],
+      "default": "mcq",
+      "required": true
+    },
+    "options": {
+      "type": "json"
+    },
+    "correctAnswer": {
+      "type": "string",
+      "required": true
+    },
+    "points": {
+      "type": "integer",
+      "default": 1
+    },
+    "quiz": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::quiz.quiz",
+      "inversedBy": "questions"
+    }
+  }
+}

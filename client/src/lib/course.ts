@@ -2,7 +2,7 @@
  * MODULE 5 — Course Fetch Helpers (Server Components only)
  */
 
-import type { Course, Category } from './types/course';
+import type { Course, Category, Quiz, Question } from './types/course';
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337';
 
@@ -11,10 +11,28 @@ const COURSE_POPULATE =
     '&populate[organization]=true' +
     '&populate[instructor]=true' +
     '&populate[category]=true' +
+    '&populate[quizzes]=true' +
     // Strapi v5: nested populate with sort must use array-index format.
     // 'populate[lessons][sort]=order:asc' is silently ignored because it
     // uses the object-style nested populate without declaring any fields.
     '&populate[lessons][sort][0]=order%3Aasc';
+
+// ... (other functions)
+
+export async function getQuizById(documentId: string, jwt: string, includeDrafts: boolean = false): Promise<Quiz | null> {
+    const statusQuery = includeDrafts ? '&status=draft' : '&status=published';
+    const res = await fetch(
+        `${STRAPI_URL}/api/quizzes/${documentId}?populate[questions]=true${statusQuery}`,
+        {
+            headers: { Authorization: `Bearer ${jwt}` },
+            cache: 'no-store',
+        }
+    );
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.data ?? null;
+}
+
 
 // ─── Public: published courses (tenant-filtered by org slug) ─────────────────
 

@@ -79,6 +79,37 @@ export default async function CourseDetailPage({ params }: Props) {
         </section>
       )}
 
+      {/* Quizzes list */}
+      {course.quizzes && course.quizzes.length > 0 && (
+        <section style={{ marginBottom: 32 }}>
+          <h2 style={{ margin: '0 0 12px' }}>
+            📝 Assessments
+            <span style={{ fontSize: 14, fontWeight: 'normal', color: '#666', marginLeft: 8 }}>
+              {course.quizzes.length} quiz{course.quizzes.length !== 1 ? 'zes' : ''}
+            </span>
+          </h2>
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0, border: '1px solid #eee', borderRadius: 8, overflow: 'hidden' }}>
+            {course.quizzes.map((quiz, idx) => (
+               <li
+                key={quiz.documentId}
+                style={{ borderBottom: idx < course.quizzes!.length - 1 ? '1px solid #eee' : 'none' }}
+               >
+                <a
+                  href={`/courses/${slug}/quizzes/${quiz.documentId}`}
+                  style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', textDecoration: 'none', color: 'inherit' }}
+                >
+                  <span style={{ flex: 1 }}>{quiz.title}</span>
+                  {isEnrolled
+                    ? <span style={{ fontSize: 11, color: '#3b82f6', background: '#eff6ff', padding: '2px 6px', borderRadius: 4 }}>START</span>
+                    : <span style={{ fontSize: 13, color: '#aaa' }}>🔒</span>
+                  }
+                </a>
+               </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       {/* Enroll CTA */}
       <div style={{ border: '1px solid #ddd', borderRadius: 8, padding: 20, textAlign: 'center' }}>
         <p style={{ fontSize: 24, fontWeight: 'bold', margin: '0 0 8px' }}>
