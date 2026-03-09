@@ -13,7 +13,7 @@ export default async function EditLessonPage({ params }: Props) {
 
   // Fetch lesson directly from Strapi
   const res = await fetch(
-    `${STRAPI_URL}/api/lessons/${lessonDocumentId}?populate=attachments`,
+    `${STRAPI_URL}/api/lessons/${lessonDocumentId}?populate=attachments&status=draft`,
     { headers: { Authorization: `Bearer ${jwt}` }, cache: 'no-store' }
   );
   if (!res.ok) notFound();

@@ -92,7 +92,7 @@ export async function getMyCourses(jwt: string): Promise<Course[]> {
 
 export async function getCourseById(documentId: string, jwt: string): Promise<Course | null> {
     const res = await fetch(
-        `${STRAPI_URL}/api/courses/${documentId}?${COURSE_POPULATE}`,
+        `${STRAPI_URL}/api/courses/${documentId}?${COURSE_POPULATE}&status=draft`,
         {
             headers: { Authorization: `Bearer ${jwt}` },
             cache: 'no-store',
@@ -194,3 +194,13 @@ export async function completeCourse(courseId: string, jwt: string): Promise<boo
 
     return true;
 }
+
+export async function getCourseProgress(courseDocumentId: string, jwt: string) {
+    const res = await fetch(`${STRAPI_URL}/api/progress/course/${courseDocumentId}`, {
+        headers: { Authorization: `Bearer ${jwt}` },
+        cache: 'no-store'
+    });
+    if (!res.ok) return { percentage: 0, completedLessons: 0, totalLessons: 0, completedLessonIds: [] };
+    return await res.json();
+}
+

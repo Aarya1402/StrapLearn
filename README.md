@@ -42,7 +42,7 @@ A production-grade, multi-tenant LMS where multiple **Organizations (Tenants)** 
 | 5 | Course & Content Management | 🔴 Critical | `[x]` ✅ |
 | 6 | Lesson Management | 🔴 Critical | `[x]` ✅ |
 | 7 | Enrollment System | 🟠 High | `[x]` ✅ |
-| 8 | Progress Tracker (Custom API) | 🟠 High | `[~]` 🛠️ |
+| 8 | Progress Tracker (Custom API) | 🟠 High | `[x]` ✅ |
 | 9 | Assessments & Quizzes | 🟠 High | `[ ]` |
 | 10 | Dashboard & Analytics | 🟡 Medium | `[ ]` |
 | 11 | Notifications System | 🟡 Medium | `[ ]` |
@@ -531,14 +531,14 @@ module.exports = {
 ```
 
 #### Deliverables
-- `[ ]` Progress content type created
-- `[ ]` Custom route file created
-- `[ ]` Custom controller with upsert logic
-- `[ ]` `is-enrolled` policy guarding the endpoint
-- `[ ]` Returns percentage on every mark-complete call
-- `[ ]` Auto-marks enrollment complete at 100%
-- `[ ]` Progress bar component in Next.js lesson viewer
-- `[ ]` Postman collection for demo
+- `[x]` Progress content type created
+- `[x]` Custom route file created
+- `[x]` Custom controller with upsert logic
+- `[x]` `is-enrolled` policy guarding the endpoint
+- `[x]` Returns percentage on every mark-complete call
+- `[x]` Auto-marks enrollment complete at 100%
+- `[x]` Progress bar component in Next.js lesson viewer
+- `[x]` Postman collection for demo (documented in README)
 
 ---
 

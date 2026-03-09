@@ -13,28 +13,40 @@ export default async (policyContext, config, { strapi }) => {
         return true;
     }
 
-    const { id: documentId } = policyContext.params;
-    if (!documentId) return true;
+    const { id, courseId, lessonId: lessonIdParam } = policyContext.params;
+    const { courseId: bodyCourseId, lessonId: bodyLessonId } = policyContext.request.body;
 
-    // We are protecting lessons and single course access
+    let documentId = id || courseId || lessonIdParam || bodyCourseId || bodyLessonId;
+
+    if (!documentId) return false;
+
     // Determination logic for which course we're talking about
     let courseDocumentId: string | null = null;
 
-    // If this is a lesson route
-    if (policyContext.state.route.handler.startsWith('api::lesson')) {
+    // Check if we are dealing with a lesson or course
+    const isLessonRoute =
+        policyContext.state.route.handler.startsWith('api::lesson') ||
+        lessonIdParam ||
+        bodyLessonId;
+
+    const isCourseRoute =
+        policyContext.state.route.handler.startsWith('api::course') ||
+        courseId ||
+        bodyCourseId;
+
+    if (isLessonRoute) {
+        // If it's a progress route, it might pass lessonId. 
+        // If it's a course route passing lessonId, logic still applies.
+        const lessonDocId = lessonIdParam || bodyLessonId || documentId;
         const lesson = await strapi.db.query('api::lesson.lesson').findOne({
-            where: { documentId },
+            where: { documentId: lessonDocId },
             populate: ['course'],
         });
 
-        // If lesson is free, allow access
         if (lesson?.isFree) return true;
-
         courseDocumentId = lesson?.course?.documentId;
-    }
-    // If this is a course route
-    else if (policyContext.state.route.handler.startsWith('api::course')) {
-        courseDocumentId = documentId;
+    } else if (isCourseRoute) {
+        courseDocumentId = courseId || bodyCourseId || documentId;
     }
 
     if (!courseDocumentId) return false;

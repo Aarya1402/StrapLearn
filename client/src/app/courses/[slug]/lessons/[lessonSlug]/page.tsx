@@ -1,5 +1,7 @@
-import { getCourseBySlug, checkEnrollment } from '@/lib/course';
+import { getCourseBySlug, checkEnrollment, getCourseProgress } from '@/lib/course';
 import FinishCourseButton from '@/components/FinishCourseButton';
+import MarkCompleteButton from '@/components/MarkCompleteButton';
+import CourseProgressBar from '@/components/CourseProgressBar';
 import { getCurrentJwt, requireAuth } from '@/lib/server-auth';
 import { notFound, redirect } from 'next/navigation';
 import type { ElementType } from 'react';
@@ -151,21 +153,27 @@ export default async function LessonViewerPage({ params }: Props) {
   // Access check
   let canAccess = lesson.isFree;
   const jwt = await getCurrentJwt();
+  let progress = { percentage: 0, completedLessonIds: [] as string[] };
   
-  if (!canAccess && jwt) {
-    const isEnrolled = await checkEnrollment(course.documentId, jwt);
-    if (isEnrolled) canAccess = true;
-    
-    // Also allow org_admins/instructors to see their own org courses
+  if (jwt) {
+    // If logged in, fetch progress even if course is free (to track it)
+    progress = await getCourseProgress(course.documentId, jwt);
+
     if (!canAccess) {
-       const user = await requireAuth();
-       if (user.role_type === 'org_admin' || user.role_type === 'instructor') {
-          // Simplification: allow all instructors/admins for now
-          // (Backend policy will still restrict if needed)
-          canAccess = true;
-       }
+      const isEnrolled = await checkEnrollment(course.documentId, jwt);
+      if (isEnrolled) canAccess = true;
+      
+      // Also allow org_admins/instructors to see their own org courses
+      if (!canAccess) {
+         const user = await requireAuth();
+         if (user.role_type === 'org_admin' || user.role_type === 'instructor') {
+            canAccess = true;
+         }
+      }
     }
   }
+
+  const isCompleted = progress.completedLessonIds.includes(lesson.documentId);
 
   return (
     <div style={{ fontFamily: 'monospace', display: 'flex', gap: 24, maxWidth: 1100, margin: '0 auto', padding: 24 }}>
@@ -173,25 +181,42 @@ export default async function LessonViewerPage({ params }: Props) {
       {/* Sidebar — lesson list */}
       <aside style={{ width: 260, flexShrink: 0, borderRight: '1px solid #eee', paddingRight: 16 }}>
         <a href={`/courses/${courseSlug}`} style={{ fontSize: 13, color: '#666' }}>← {course.title}</a>
+        
+        {jwt && (
+            <div style={{ marginTop: 24 }}>
+                <CourseProgressBar percentage={progress.percentage} />
+            </div>
+        )}
+
         <h3 style={{ marginTop: 16 }}>Lessons</h3>
         <ol style={{ paddingLeft: 16, margin: 0 }}>
-          {lessons.map((l: any) => (
-            <li
-              key={l.documentId}
-              style={{
-                padding: '6px 0',
-                fontWeight: l.slug === lessonSlug ? 'bold' : 'normal',
-              }}
-            >
-              <a
-                href={`/courses/${courseSlug}/lessons/${l.slug}`}
-                style={{ color: l.slug === lessonSlug ? '#000' : '#555', textDecoration: 'none' }}
+          {lessons.map((l: any) => {
+            const isLessonCompleted = progress.completedLessonIds.includes(l.documentId);
+            return (
+              <li
+                key={l.documentId}
+                style={{
+                  padding: '6px 0',
+                  fontWeight: l.slug === lessonSlug ? 'bold' : 'normal',
+                }}
               >
-                {l.title}
-                {l.isFree && <span style={{ fontSize: 10, color: '#10b981', marginLeft: 4 }}>FREE</span>}
-              </a>
-            </li>
-          ))}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    {jwt && (
+                        <span style={{ fontSize: 12 }}>
+                            {isLessonCompleted ? '✅' : '⚪️'}
+                        </span>
+                    )}
+                    <a
+                      href={`/courses/${courseSlug}/lessons/${l.slug}`}
+                      style={{ color: l.slug === lessonSlug ? '#000' : '#555', textDecoration: 'none' }}
+                    >
+                      {l.title}
+                      {l.isFree && <span style={{ fontSize: 10, color: '#10b981', marginLeft: 4 }}>FREE</span>}
+                    </a>
+                </div>
+              </li>
+            );
+          })}
         </ol>
       </aside>
 
@@ -210,12 +235,25 @@ export default async function LessonViewerPage({ params }: Props) {
           </div>
         ) : (
           <>
-            <h1>{lesson.title}</h1>
-            {lesson.duration && (
-              <p style={{ color: '#666', fontSize: 13 }}>
-                ⏱ {Math.floor(lesson.duration / 60)}m {lesson.duration % 60}s
-              </p>
-            )}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div>
+                    <h1>{lesson.title}</h1>
+                    {lesson.duration && (
+                      <p style={{ color: '#666', fontSize: 13 }}>
+                        ⏱ {Math.floor(lesson.duration / 60)}m {lesson.duration % 60}s
+                      </p>
+                    )}
+                </div>
+                {jwt && (
+                    <MarkCompleteButton 
+                        lessonId={lesson.documentId} 
+                        courseId={course.documentId} 
+                        courseSlug={courseSlug} 
+                        lessonSlug={lessonSlug}
+                        isCompleted={isCompleted} 
+                    />
+                )}
+            </div>
 
             {/* Video player */}
             {lesson.videoUrl && (

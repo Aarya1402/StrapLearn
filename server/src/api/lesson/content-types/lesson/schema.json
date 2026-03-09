@@ -56,6 +56,12 @@
       "multiple": true,
       "required": false,
       "allowedTypes": ["files", "images", "videos"]
+    },
+    "progresses": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::progress.progress",
+      "mappedBy": "lesson"
     }
   }
 }

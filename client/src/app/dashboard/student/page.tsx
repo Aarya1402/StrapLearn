@@ -37,6 +37,12 @@ export default async function StudentDashboardPage() {
           View My Courses
         </a>
         <a 
+          href="/dashboard/student/progress" 
+          style={{ padding: '12px 24px', background: '#3b82f6', color: '#fff', textDecoration: 'none', borderRadius: 8, fontWeight: 'bold' }}
+        >
+          Detailed Progress
+        </a>
+        <a 
           href="/courses" 
           style={{ padding: '12px 24px', border: '1px solid #000', color: '#000', textDecoration: 'none', borderRadius: 8, fontWeight: 'bold' }}
         >
