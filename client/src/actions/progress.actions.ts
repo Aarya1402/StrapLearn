@@ -23,6 +23,9 @@ export async function markLessonCompleteAction(lessonId: string, courseId: strin
         throw new Error(err?.error?.message || 'Failed to mark lesson complete');
     }
 
+    const data = await res.json();
     revalidatePath(`/courses/${courseSlug}/lessons/${lessonSlug}`);
     revalidatePath(`/courses/${courseSlug}`);
+
+    return data;
 }

@@ -18,7 +18,11 @@ export default function FinishCourseButton({ courseId, courseSlug }: Props) {
     try {
       const result = await completeCourseAction(courseId, courseSlug);
       if (result.success) {
-        router.push(`/courses/${courseSlug}`);
+        if (result.nextQuizId) {
+          router.push(`/courses/${courseSlug}/quizzes/${result.nextQuizId}`);
+        } else {
+          router.push(`/courses/${courseSlug}`);
+        }
         router.refresh();
       } else {
         alert('Failed to finish course: ' + result.error);

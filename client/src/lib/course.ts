@@ -33,6 +33,18 @@ export async function getQuizById(documentId: string, jwt: string, includeDrafts
     return data.data ?? null;
 }
 
+export async function getQuizAttempts(documentId: string, jwt: string): Promise<any[]> {
+    const res = await fetch(
+        `${STRAPI_URL}/api/quizzes/${documentId}/results`,
+        {
+            headers: { Authorization: `Bearer ${jwt}` },
+            cache: 'no-store',
+        }
+    );
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.data ?? [];
+}
 
 // ─── Public: published courses (tenant-filtered by org slug) ─────────────────
 
@@ -158,6 +170,19 @@ export async function getOrgInstructors(orgDocumentId: string, jwt: string): Pro
 
 // ─── Enrollment (Student) ────────────────────────────────────────────────────
 
+export async function getOrgEnrollmentStats(jwt: string): Promise<{
+    totalEnrollments: number;
+    completedEnrollments: number;
+    completionRate: number;
+} | null> {
+    const res = await fetch(`${STRAPI_URL}/api/enrollments/stats`, {
+        headers: { Authorization: `Bearer ${jwt}` },
+        cache: 'no-store',
+    });
+    if (!res.ok) return null;
+    return await res.json();
+}
+
 export async function enrollInCourse(courseId: string, jwt: string): Promise<boolean> {
     const res = await fetch(`${STRAPI_URL}/api/enrollments/enroll`, {
         method: 'POST',
@@ -193,7 +218,7 @@ export async function checkEnrollment(courseId: string, jwt: string): Promise<bo
     return enrollments.some((e: any) => e.course?.documentId === courseId);
 }
 
-export async function completeCourse(courseId: string, jwt: string): Promise<boolean> {
+export async function completeCourse(courseId: string, jwt: string): Promise<any> {
     const res = await fetch(`${STRAPI_URL}/api/enrollments/complete`, {
         method: 'POST',
         headers: {
@@ -207,10 +232,10 @@ export async function completeCourse(courseId: string, jwt: string): Promise<boo
     if (!res.ok) {
         const error = await res.json();
         console.error('Course completion failed:', error);
-        return false;
+        return null;
     }
 
-    return true;
+    return await res.json();
 }
 
 export async function getCourseProgress(courseDocumentId: string, jwt: string) {

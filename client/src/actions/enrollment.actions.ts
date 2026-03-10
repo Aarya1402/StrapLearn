@@ -25,10 +25,10 @@ export async function completeCourseAction(courseId: string, courseSlug: string)
         throw new Error('Not authenticated');
     }
 
-    const success = await completeCourse(courseId, jwt);
-    if (success) {
+    const res = await completeCourse(courseId, jwt);
+    if (res) {
         revalidatePath(`/courses/${courseSlug}`);
-        return { success: true };
+        return { success: true, ...res };
     }
 
     return { success: false, error: 'Failed to complete course' };

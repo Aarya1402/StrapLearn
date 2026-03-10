@@ -1,4 +1,4 @@
-import { getMyEnrollments, getCourseProgress } from '@/lib/course';
+import { getMyEnrollments, getCourseProgress, getQuizAttempts } from '@/lib/course';
 import { getCurrentJwt, requireAuth } from '@/lib/server-auth';
 import CourseProgressBar from '@/components/CourseProgressBar';
 
@@ -15,7 +15,27 @@ export default async function ProgressPage() {
     enrollments.map(async (enrollment: any) => {
       if (!enrollment.course) return { ...enrollment, progress: { percentage: 0 } };
       const progress = await getCourseProgress(enrollment.course.documentId, jwt);
-      return { ...enrollment, progress };
+      
+      let highestScore: number | null = null;
+      let bestAttemptId: string | null = null;
+      let quizId: string | null = null;
+
+      if (enrollment.isCompleted && enrollment.course.quizzes?.length > 0) {
+        for (const quiz of enrollment.course.quizzes) {
+          const attempts = await getQuizAttempts(quiz.documentId, jwt);
+          if (attempts.length > 0) {
+            quizId = quiz.documentId; // Store the quiz ID
+          }
+          for (const attempt of attempts) {
+            if (highestScore === null || attempt.score > highestScore) {
+              highestScore = attempt.score;
+              bestAttemptId = attempt.documentId;
+            }
+          }
+        }
+      }
+
+      return { ...enrollment, progress, highestScore, bestAttemptId, quizId };
     })
   );
 
@@ -66,7 +86,7 @@ export default async function ProgressPage() {
                       fontWeight: 'bold'
                     }}
                   >
-                    Continue
+                    {item.isCompleted ? 'Review' : 'Continue'}
                   </a>
                 </div>
 
@@ -79,9 +99,15 @@ export default async function ProgressPage() {
                     <strong>{progress.completedLessons}</strong> of <strong>{progress.totalLessons}</strong> lessons completed
                   </span>
                   {item.isCompleted && (
-                    <span style={{ color: '#10b981', fontWeight: 'bold' }}>
-                      🟢 Course Completed
-                    </span>
+                    item.quizId ? (
+                      <a href={`/test/quizzes/${item.quizId}/attempts`} style={{ color: '#10b981', fontWeight: 'bold', textDecoration: 'none' }}>
+                        🟢 Highest Score: {item.highestScore}%
+                      </a>
+                    ) : (
+                      <span style={{ color: '#10b981', fontWeight: 'bold' }}>
+                        🟢 Course Completed
+                      </span>
+                    )
                   )}
                 </div>
               </div>

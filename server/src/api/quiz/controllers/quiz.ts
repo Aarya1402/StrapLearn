@@ -1,4 +1,5 @@
 import { factories } from '@strapi/strapi';
+import { evaluateAnswerWithGemini } from '../../../utils/gemini-grader';
 
 export default factories.createCoreController('api::quiz.quiz', ({ strapi }) => ({
     /**
@@ -28,7 +29,7 @@ export default factories.createCoreController('api::quiz.quiz', ({ strapi }) => 
     async publish(ctx) {
         const { documentId } = ctx.params;
         try {
-            const result = await strapi.documents('api::quiz.quiz').publish({
+            const result = await (strapi.documents('api::quiz.quiz') as any).publish({
                 documentId,
             });
             ctx.body = { data: result };
@@ -43,7 +44,7 @@ export default factories.createCoreController('api::quiz.quiz', ({ strapi }) => 
     async unpublish(ctx) {
         const { documentId } = ctx.params;
         try {
-            const result = await strapi.documents('api::quiz.quiz').unpublish({
+            const result = await (strapi.documents('api::quiz.quiz') as any).unpublish({
                 documentId,
             });
             ctx.body = { data: result };
@@ -62,8 +63,8 @@ export default factories.createCoreController('api::quiz.quiz', ({ strapi }) => 
         if (!answers) return ctx.badRequest('Answers are required');
 
         // Fetch quiz with questions
-        const quiz = await strapi.db.query('api::quiz.quiz').findOne({
-            where: { documentId },
+        const quiz = await strapi.documents('api::quiz.quiz').findOne({
+            documentId,
             populate: ['questions'],
         });
 
@@ -73,26 +74,60 @@ export default factories.createCoreController('api::quiz.quiz', ({ strapi }) => 
         let score = 0;
         let totalPoints = 0;
 
-        const detailedResults = questions.map((q: any) => {
-            const userAnswer = answers[q.documentId];
-            const isCorrect = userAnswer === q.correctAnswer;
-            if (isCorrect) score += (q.points || 1);
-            totalPoints += (q.points || 1);
+        // Evaluate each answer (short-answer → Gemini AI, mcq/true-false → exact match)
+        const detailedResults = await Promise.all(questions.map(async (q: any) => {
+            const userAnswer = answers[q.documentId] ?? '';
+            const pointsValue = q.points || 1;
+            totalPoints += pointsValue;
+
+            const isShortAnswer = q.type === 'short-answer';
+
+            let scoreMultiplier: number;
+            let feedback: string | undefined;
+            let missing_points: string[] | undefined;
+            let aiResult: string | undefined;
+
+            if (isShortAnswer) {
+                console.log("eval");
+                // Use Gemini for semantic evaluation
+                const evaluation = await evaluateAnswerWithGemini(
+                    q.text,
+                    q.correctAnswer,
+                    userAnswer,
+                );
+                scoreMultiplier = evaluation.score;
+                feedback = evaluation.feedback;
+                missing_points = evaluation.missing_points;
+                aiResult = evaluation.result;
+            } else {
+                // MCQ / true-false: exact string match (case-insensitive trim)
+                const match = userAnswer.trim().toLowerCase() === (q.correctAnswer ?? '').trim().toLowerCase();
+                scoreMultiplier = match ? 1 : 0;
+            }
+
+            const pointsEarned = parseFloat((scoreMultiplier * pointsValue).toFixed(2));
+            score += pointsEarned;
+            const isCorrect = scoreMultiplier >= 1;
+            const isPartial = scoreMultiplier > 0 && scoreMultiplier < 1;
 
             return {
                 questionDocumentId: q.documentId,
                 userAnswer,
                 correctAnswer: q.correctAnswer,
                 isCorrect,
-                pointsText: `${isCorrect ? q.points : 0}/${q.points}`
+                isPartial,
+                scoreMultiplier,
+                aiGraded: isShortAnswer,
+                ...(isShortAnswer && { feedback, missing_points, aiResult }),
+                pointsText: `${pointsEarned}/${pointsValue}`,
             };
-        });
+        }));
 
         const percentage = totalPoints > 0 ? Math.round((score / totalPoints) * 100) : 0;
         const isPassed = percentage >= (quiz.passingScore || 70);
 
         // Save attempt
-        const attempt = await strapi.db.query('api::quiz-attempt.quiz-attempt').create({
+        const attempt = await strapi.documents('api::quiz-attempt.quiz-attempt').create({
             data: {
                 user: user.id,
                 quiz: quiz.id,

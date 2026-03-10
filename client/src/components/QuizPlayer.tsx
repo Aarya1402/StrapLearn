@@ -55,15 +55,45 @@ export default function QuizPlayer({ quiz, courseSlug }: Props) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 16 }}>
             {result.detailedResults.map((res: any, i: number) => {
               const q = questions.find(question => question.documentId === res.questionDocumentId);
+              const bg = res.isCorrect ? '#f0fdf4' : res.isPartial ? '#fffbeb' : '#fef2f2';
+              const answerColor = res.isCorrect ? '#10b981' : res.isPartial ? '#d97706' : '#ef4444';
               return (
-                <div key={i} style={{ padding: 16, border: '1px solid #eee', borderRadius: 8, background: res.isCorrect ? '#f0fdf4' : '#fef2f2' }}>
-                  <p style={{ fontWeight: 'bold', margin: 0 }}>{i + 1}. {q?.text}</p>
+                <div key={i} style={{ padding: 16, border: '1px solid #eee', borderRadius: 8, background: bg }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <p style={{ fontWeight: 'bold', margin: 0 }}>{i + 1}. {q?.text}</p>
+                    {res.aiGraded && (
+                      <span style={{ fontSize: 11, background: '#e0e7ff', color: '#4f46e5', padding: '2px 8px', borderRadius: 12, fontWeight: 600, whiteSpace: 'nowrap' }}>
+                        🤖 AI Graded
+                      </span>
+                    )}
+                  </div>
                   <p style={{ fontSize: 13, marginTop: 8 }}>
-                    Your answer: <span style={{ color: res.isCorrect ? '#10b981' : '#ef4444' }}>{res.userAnswer || '(No answer)'}</span>
+                    Your answer: <span style={{ color: answerColor }}>{res.userAnswer || '(No answer)'}</span>
+                    {res.isPartial && <span style={{ marginLeft: 8, color: '#d97706' }}>⚡ Partial credit</span>}
                   </p>
                   {!res.isCorrect && (
-                    <p style={{ fontSize: 13, color: '#10b981' }}>
+                    <p style={{ fontSize: 13, color: '#10b981', marginTop: 4 }}>
                       Correct answer: {res.correctAnswer}
+                    </p>
+                  )}
+                  {res.aiGraded && res.feedback && (
+                    <p style={{ fontSize: 13, color: '#555', marginTop: 6, fontStyle: 'italic' }}>
+                      💬 {res.feedback}
+                    </p>
+                  )}
+                  {res.aiGraded && res.missing_points && res.missing_points.length > 0 && (
+                    <div style={{ marginTop: 6 }}>
+                      <p style={{ fontSize: 12, color: '#888', margin: '0 0 4px' }}>Missing points:</p>
+                      <ul style={{ margin: 0, paddingLeft: 20 }}>
+                        {res.missing_points.map((pt: string, pi: number) => (
+                          <li key={pi} style={{ fontSize: 12, color: '#ef4444' }}>{pt}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {res.pointsText && (
+                    <p style={{ fontSize: 12, color: '#888', marginTop: 6 }}>
+                      Points: {res.pointsText}
                     </p>
                   )}
                 </div>

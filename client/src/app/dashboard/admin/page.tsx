@@ -1,11 +1,18 @@
 import { requireRole, getCurrentJwt } from '@/lib/server-auth';
-import { getAllCoursesForDashboard } from '@/lib/course';
+import { getAllCoursesForDashboard, getOrgEnrollmentStats } from '@/lib/course';
 
 export default async function AdminDashboardPage() {
   const user = await requireRole('org_admin');
   const jwt = (await getCurrentJwt())!;
 
-  const courses = await getAllCoursesForDashboard(jwt, user.organization?.slug);
+  const [courses, stats] = await Promise.all([
+    getAllCoursesForDashboard(jwt, user.organization?.slug),
+    getOrgEnrollmentStats(jwt),
+  ]);
+
+  const completionRate = stats?.completionRate ?? null;
+  const totalEnrollments = stats?.totalEnrollments ?? 0;
+  const completedEnrollments = stats?.completedEnrollments ?? 0;
 
   return (
     <div>
@@ -18,7 +25,31 @@ export default async function AdminDashboardPage() {
         <ul>
           <li>Total Users: <em>(available in Module 10)</em></li>
           <li>Total Courses: <strong>{courses.length}</strong></li>
-          <li>Completion Rate: <em>(available in Module 8)</em></li>
+          <li>
+            Total Enrollments: <strong>{totalEnrollments}</strong>
+            {completedEnrollments > 0 && (
+              <> &mdash; Completed: <strong>{completedEnrollments}</strong></>
+            )}
+          </li>
+          <li>
+            Completion Rate:{' '}
+            {completionRate !== null ? (
+              <strong
+                style={{
+                  color:
+                    completionRate >= 75
+                      ? '#10b981'
+                      : completionRate >= 40
+                      ? '#f59e0b'
+                      : '#ef4444',
+                }}
+              >
+                {completionRate}%
+              </strong>
+            ) : (
+              <em>No enrollments yet</em>
+            )}
+          </li>
         </ul>
       </section>
       <section style={{ marginTop: 24 }}>

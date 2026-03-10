@@ -67,7 +67,7 @@ export default factories.createCoreController('api::enrollment.enrollment', ({ s
             where: { user: { id: user.id } },
             populate: {
                 course: {
-                    populate: ['thumbnail', 'organization']
+                    populate: ['thumbnail', 'organization', 'quizzes']
                 }
             },
             orderBy: { enrolledAt: 'desc' },
@@ -112,6 +112,53 @@ export default factories.createCoreController('api::enrollment.enrollment', ({ s
             },
         });
 
-        return (ctx.body = { data: updatedEnrollment });
+        // Check for quizzes
+        const publishedQuizzes = await strapi.documents('api::quiz.quiz').findMany({
+            filters: { course: { documentId: courseId } },
+            status: 'published',
+            limit: 1
+        });
+
+        const nextQuizId = publishedQuizzes.length > 0 ? publishedQuizzes[0].documentId : null;
+
+        return (ctx.body = { data: updatedEnrollment, nextQuizId });
+    },
+
+    /**
+     * GET /api/enrollments/stats
+     * Returns completion rate stats scoped to the admin's organization.
+     * Accessible by org_admin only.
+     */
+    async getOrgStats(ctx) {
+        const user = ctx.state.user;
+        if (!user) return ctx.unauthorized();
+
+        // Fetch user with organization populated
+        const userWithOrg = await strapi.db.query('plugin::users-permissions.user').findOne({
+            where: { id: user.id },
+            populate: ['organization'],
+        }) as any;
+
+        const orgId = userWithOrg?.organization?.id;
+        if (!orgId) return ctx.badRequest('No organization assigned.');
+
+        // All enrollments for courses in this org
+        const totalEnrollments = await strapi.db.query('api::enrollment.enrollment').count({
+            where: { course: { organization: { id: orgId } } },
+        });
+
+        const completedEnrollments = await strapi.db.query('api::enrollment.enrollment').count({
+            where: { course: { organization: { id: orgId } }, isCompleted: true },
+        });
+
+        const completionRate = totalEnrollments > 0
+            ? Math.round((completedEnrollments / totalEnrollments) * 100)
+            : 0;
+
+        return ctx.body = {
+            totalEnrollments,
+            completedEnrollments,
+            completionRate,
+        };
     },
 }));

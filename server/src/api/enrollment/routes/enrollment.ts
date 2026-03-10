@@ -1,6 +1,15 @@
 export default {
     routes: [
         {
+            method: 'GET',
+            path: '/enrollments/stats',
+            handler: 'enrollment.getOrgStats',
+            config: {
+                policies: [],
+                middlewares: [],
+            },
+        },
+        {
             method: 'POST',
             path: '/enrollments/enroll',
             handler: 'enrollment.enroll',

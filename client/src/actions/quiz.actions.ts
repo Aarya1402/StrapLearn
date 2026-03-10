@@ -18,10 +18,9 @@ export async function submitQuizAction(quizDocumentId: string, answers: Record<s
         },
         body: JSON.stringify({ answers }),
     });
-
     if (!res.ok) {
         const err = await res.json();
-        throw new Error(err?.error?.message || 'Failed to submit quiz');
+        throw new Error(err?.error?.message || 'Failed to submit quiz', { cause: err });
     }
 
     const data = await res.json();
