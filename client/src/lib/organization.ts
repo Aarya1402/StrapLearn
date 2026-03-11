@@ -62,3 +62,14 @@ export async function getOrganizationBySlug(slug: string, jwt: string): Promise<
     const data = await res.json();
     return data.data?.[0] ?? null;
 }
+
+// ─── Get Public Organizations (For registration dropdown) ────────────────────
+
+export async function getPublicOrganizations(): Promise<Organization[]> {
+    const res = await fetch(`${STRAPI_URL}/api/organizations?filters[isActive][$eq]=true`, {
+        cache: 'no-store',
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.data || [];
+}

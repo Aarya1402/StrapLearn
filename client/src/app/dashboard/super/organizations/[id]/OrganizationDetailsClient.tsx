@@ -6,9 +6,10 @@ import { ShieldCheck, ShieldAlert, Edit2, Check, X, Mail, Globe, Palette } from 
 
 interface Props {
   org: any;
+  hideEdit?: boolean;
 }
 
-export default function OrganizationDetailsClient({ org: initialOrg }: Props) {
+export default function OrganizationDetailsClient({ org: initialOrg, hideEdit = false }: Props) {
   const [org, setOrg] = useState(initialOrg);
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -59,22 +60,24 @@ export default function OrganizationDetailsClient({ org: initialOrg }: Props) {
           </div>
         </div>
         
-        {!isEditing ? (
-          <button 
-            onClick={() => setIsEditing(true)}
-            style={editButtonStyle}
-          >
-            <Edit2 size={16} /> Edit Organization
-          </button>
-        ) : (
-          <div style={{ display: 'flex', gap: 12 }}>
-            <button onClick={() => setIsEditing(false)} style={cancelButtonStyle}>
-              <X size={16} /> Cancel
+        {!hideEdit && (
+          !isEditing ? (
+            <button 
+              onClick={() => setIsEditing(true)}
+              style={editButtonStyle}
+            >
+              <Edit2 size={16} /> Edit Organization
             </button>
-            <button onClick={handleSave} disabled={loading} style={saveButtonStyle}>
-              {loading ? 'Saving...' : <><Check size={16} /> Save Changes</>}
-            </button>
-          </div>
+          ) : (
+            <div style={{ display: 'flex', gap: 12 }}>
+              <button onClick={() => setIsEditing(false)} style={cancelButtonStyle}>
+                <X size={16} /> Cancel
+              </button>
+              <button onClick={handleSave} disabled={loading} style={saveButtonStyle}>
+                {loading ? 'Saving...' : <><Check size={16} /> Save Changes</>}
+              </button>
+            </div>
+          )
         )}
       </div>
 

@@ -12,7 +12,7 @@ import bcrypt from 'bcryptjs';
 
 export default ({ strapi }: { strapi: Core.Strapi }) => ({
     async registerWithRole(ctx: any) {
-        const { username, email, password, role_type } = ctx.request.body;
+        const { username, email, password, role_type, organization } = ctx.request.body;
 
         if (!username || !email || !password) {
             return ctx.badRequest('username, email and password are required');
@@ -21,7 +21,18 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
         const allowedRoles = ['super_admin', 'org_admin', 'instructor', 'student'];
         const resolvedRole = allowedRoles.includes(role_type) ? role_type : 'student';
 
+        // 🟢 Resolve organization if documentId is provided
+        let orgPk: number | undefined;
+        if (organization && resolvedRole !== 'super_admin') {
+            const org = await strapi.db.query('api::organization.organization').findOne({
+                where: { documentId: organization },
+                select: ['id'],
+            });
+            if (org) orgPk = org.id;
+        }
+
         // Check registration is allowed
+        // ... (rest of the checks)
         const pluginStore = strapi.store({ type: 'plugin', name: 'users-permissions' });
         const settings: any = await pluginStore.get({ key: 'advanced' });
         if (!settings.allow_register) {
@@ -54,6 +65,7 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
                     password: hashedPassword,
                     role: defaultRole?.id,
                     role_type: resolvedRole,
+                    organization: orgPk,
                     confirmed: true,
                     provider: 'local',
                 },

@@ -1,6 +1,6 @@
 # 🎓 LMS Core — Enterprise Edition
 
-> **Stack:** Next.js 14 · Strapi v5 · PostgreSQL · Clerk Auth · Stripe · TailwindCSS  
+> **Stack:** Next.js 14 · Strapi v5 · PostgreSQL · Stripe · TailwindCSS  
 > **Type:** Multi-Tenant SaaS Learning Management System for Corporate Training
 
 ---

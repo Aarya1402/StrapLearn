@@ -35,6 +35,7 @@ export interface RegisterPayload {
     email: string;
     password: string;
     role_type?: RoleType;
+    organization?: string; // documentId
 }
 
 export interface StrapiAuthResponse {

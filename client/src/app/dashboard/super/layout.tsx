@@ -1,5 +1,7 @@
 import { getCurrentUser, getDashboardPath } from '@/lib/server-auth';
+import { logoutAction } from '@/actions/auth.actions';
 import { redirect } from 'next/navigation';
+import { LogOut } from 'lucide-react';
 
 export default async function SuperDashboardLayout({
   children,
@@ -32,9 +34,28 @@ export default async function SuperDashboardLayout({
           <div style={{ width: 32, height: 32, background: '#111', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 'bold' }}>S</div>
           <span style={{ fontWeight: 'bold', letterSpacing: '-0.5px' }}>StrapLearn <span style={{ color: '#ef4444' }}>Super</span></span>
         </div>
-        <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: 20, alignItems: 'center' }}>
           <span style={{ fontSize: 13, color: '#666' }}>{user.email}</span>
-          <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#eee' }}></div>
+          <form action={logoutAction}>
+            <button 
+              type="submit" 
+              style={{ 
+                background: '#fef2f2', 
+                border: '1px solid #fee2e2', 
+                color: '#ef4444', 
+                padding: '6px 12px', 
+                borderRadius: 8, 
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                fontSize: 13,
+                fontWeight: 600
+              }}
+            >
+              <LogOut size={14} /> Logout
+            </button>
+          </form>
         </div>
       </nav>
       <aside style={{ display: 'flex', gap: 24, padding: 24 }}>

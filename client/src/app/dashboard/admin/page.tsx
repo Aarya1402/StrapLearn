@@ -68,7 +68,7 @@ export default async function AdminDashboardPage() {
               <BookOpen size={18} />
               Manage Courses
             </a>
-            <a href="/settings" style={actionButtonStyle}>
+            <a href="/dashboard/admin/settings" style={actionButtonStyle}>
               <ShieldCheck size={18} />
               Org Settings
             </a>

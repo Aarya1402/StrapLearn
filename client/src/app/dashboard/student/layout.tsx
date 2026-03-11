@@ -21,6 +21,7 @@ export default async function StudentLayout({ children }: { children: React.Reac
           <li><a href="/dashboard/student/courses">My Courses</a></li>
           <li><a href="/dashboard/student/progress">Progress</a></li>
           <li><a href="/courses">Browse Courses</a></li>
+          <li><a href="/dashboard/student/settings">Org Settings</a></li>
         </ul>
         <main style={{ flex: 1 }}>{children}</main>
       </aside>
