@@ -40,7 +40,13 @@ export default async function EditCoursePage({ params }: Props) {
   return (
     <div style={{ fontFamily: 'monospace', maxWidth: 700 }}>
       <a href="/dashboard/courses">← Back to courses</a>
-      <h1>Edit: {course.title}</h1>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h1>Edit: {course.title}</h1>
+        <a href={`/courses/${course.slug}`} target="_blank" 
+          style={{ padding: '8px 16px', background: '#10b981', color: '#fff', textDecoration: 'none', borderRadius: 6, fontSize: 13, fontWeight: 'bold' }}>
+          👁️ Preview Course
+        </a>
+      </div>
       <p>Status: {course.publishedAt ? '✅ Published' : '📝 Draft'}
         {' '}&bull;{' '}{lessons.length} lesson{lessons.length !== 1 ? 's' : ''}
       </p>
@@ -156,6 +162,8 @@ export default async function EditCoursePage({ params }: Props) {
                 <td style={{ padding: 6, display: 'flex', gap: 8 }}>
                   <a href={`/dashboard/courses/${documentId}/lessons/${lesson.documentId}`}
                     style={{ color: '#3b82f6', fontSize: 13 }}>Edit</a>
+                  <a href={`/courses/${course.slug}/lessons/${lesson.slug}`} target="_blank"
+                    style={{ color: '#10b981', fontSize: 13, textDecoration: 'none' }}>Preview</a>
                   <form action={deleteLessonAction.bind(null, lesson.documentId, documentId)}
                     style={{ display: 'inline' }}>
                     <button type="submit"
@@ -240,6 +248,8 @@ export default async function EditCoursePage({ params }: Props) {
                 <td style={{ padding: 6, display: 'flex', gap: 8 }}>
                   <a href={`/dashboard/courses/${documentId}/quizzes/${quiz.documentId}`}
                     style={{ color: '#3b82f6', fontSize: 13, textDecoration: 'none' }}>Edit Questions</a>
+                  <a href={`/courses/${course.slug}/quizzes/${quiz.documentId}`} target="_blank"
+                    style={{ color: '#10b981', fontSize: 13, textDecoration: 'none' }}>Preview</a>
                   {isAdmin && !quiz.publishedAt && (
                       <form action={publishQuizAction.bind(null, quiz.documentId, documentId)}>
                           <button type="submit" style={{ color: '#10b981', border: 'none', background: 'none', cursor: 'pointer', fontSize: 13, padding: 0 }}>Publish</button>

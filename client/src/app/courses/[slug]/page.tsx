@@ -9,10 +9,10 @@ interface Props { params: Promise<{ slug: string }> }
 
 export default async function CourseDetailPage({ params }: Props) {
   const { slug } = await params;
-  const course = await getCourseBySlug(slug);
+  const jwt = await getCurrentJwt();
+  const course = await getCourseBySlug(slug, jwt || undefined);
   if (!course) notFound();
 
-  const jwt = await getCurrentJwt();
   const user = await getCurrentUser();
   const isEnrolled = jwt ? await checkEnrollment(course.documentId, jwt) : false;
   const isSuper = user?.role_type === 'super_admin';

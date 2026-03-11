@@ -57,6 +57,7 @@ export default async function DashboardCoursesPage({
               </td>
               <td style={{ padding: 8, display: 'flex', gap: 8 }}>
                 <a href={`/dashboard/courses/${course.documentId}`} style={{ color: '#3b82f6' }}>Edit</a>
+                <a href={`/courses/${course.slug}`} target="_blank" style={{ color: '#10b981', textDecoration: 'none' }}>Preview</a>
                 {/* Publish / Unpublish */}
                 {user.role_type === 'org_admin' && (
                   course.publishedAt ? (

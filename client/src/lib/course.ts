@@ -61,11 +61,17 @@ export async function getPublishedCourses(orgSlug?: string): Promise<Course[]> {
 
 // ─── Public: single published course by slug ─────────────────────────────────
 
-export async function getCourseBySlug(slug: string): Promise<Course | null> {
-    // Strapi v5: status=published for public access
+export async function getCourseBySlug(slug: string, jwt?: string): Promise<Course | null> {
+    // If JWT provided, fetch with status=draft to see the latest even if unpublished
+    const statusQuery = jwt ? '&status=draft' : '&status=published';
+    const headers: HeadersInit = jwt ? { Authorization: `Bearer ${jwt}` } : {};
+
     const res = await fetch(
-        `${STRAPI_URL}/api/courses?filters[slug][$eq]=${slug}&${COURSE_POPULATE}&status=published`,
-        { cache: 'no-store' }
+        `${STRAPI_URL}/api/courses?filters[slug][$eq]=${slug}&${COURSE_POPULATE}${statusQuery}`,
+        { 
+            headers,
+            cache: 'no-store' 
+        }
     );
     if (!res.ok) return null;
     const data = await res.json();

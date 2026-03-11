@@ -9,18 +9,26 @@ interface Props {
 
 export default async function QuizPage({ params }: Props) {
   const { slug, quizId } = await params;
+  const jwt = await getCurrentJwt();
 
-  const course = await getCourseBySlug(slug);
+  const course = await getCourseBySlug(slug, jwt || undefined);
   if (!course) notFound();
 
-  const jwt = await getCurrentJwt();
   if (!jwt) redirect(`/login?callbackUrl=/courses/${slug}/quizzes/${quizId}`);
 
   // Access check
   const isEnrolled = await checkEnrollment(course.documentId, jwt);
   if (!isEnrolled) {
-     // Allow instructors/admins for now
-     // (In production, you'd check if they own the course)
+     const userRes = await fetch(`${process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337'}/api/users/me`, {
+         headers: { Authorization: `Bearer ${jwt}` },
+         cache: 'no-store'
+     });
+     const user = await userRes.json();
+     const hasAccessRole = ['super_admin', 'org_admin', 'instructor'].includes(user.role_type);
+     
+     if (!hasAccessRole) {
+        redirect(`/courses/${slug}?error=not-enrolled`);
+     }
   }
 
   const quiz = await getQuizById(quizId, jwt);

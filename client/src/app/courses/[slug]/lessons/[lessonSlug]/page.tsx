@@ -139,7 +139,8 @@ function renderBlock(block: any, i: number) {
 
 export default async function LessonViewerPage({ params }: Props) {
   const { slug: courseSlug, lessonSlug } = await params;
-  const course = await getCourseBySlug(courseSlug);
+  const jwt = await getCurrentJwt();
+  const course = await getCourseBySlug(courseSlug, jwt || undefined);
   if (!course) notFound();
 
   const lesson = course.lessons?.find((l) => l.slug === lessonSlug);
@@ -152,7 +153,7 @@ export default async function LessonViewerPage({ params }: Props) {
 
   // Access check
   let canAccess = lesson.isFree;
-  const jwt = await getCurrentJwt();
+  
   let progress = { percentage: 0, completedLessonIds: [] as string[] };
   
   if (jwt) {
