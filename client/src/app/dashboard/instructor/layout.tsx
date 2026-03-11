@@ -17,6 +17,7 @@ export default async function InstructorLayout({ children }: { children: React.R
       </nav>
       <aside style={{ display: 'flex', gap: 24, padding: 24 }}>
         <ul style={{ listStyle: 'none', padding: 0, minWidth: 160 }}>
+          
           <li><a href="/dashboard/instructor">🏠 Dashboard</a></li>
           <li><a href="/dashboard/courses?filter=my">📚 My Courses</a></li>
           <li><a href="/dashboard/instructor/lessons">📖 Lessons</a></li>

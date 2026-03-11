@@ -17,7 +17,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       </nav>
       <aside style={{ display: 'flex', gap: 24, padding: 24 }}>
         <ul style={{ listStyle: 'none', padding: 0, minWidth: 160 }}>
-          <li><a href="/dashboard/admin">Overview</a></li>
+          <li><a href="/dashboard/admin">Dashboard</a></li>
           <li><a href="/dashboard/admin/users">Users</a></li>
           <li><a href="/dashboard/courses">Courses</a></li>
         </ul>

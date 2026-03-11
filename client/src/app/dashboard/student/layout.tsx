@@ -17,6 +17,7 @@ export default async function StudentLayout({ children }: { children: React.Reac
       </nav>
       <aside style={{ display: 'flex', gap: 24, padding: 24 }}>
         <ul style={{ listStyle: 'none', padding: 0, minWidth: 160 }}>
+          <li><a href='/dashboard/student'>Dashboard</a></li>
           <li><a href="/dashboard/student/courses">My Courses</a></li>
           <li><a href="/dashboard/student/progress">Progress</a></li>
           <li><a href="/courses">Browse Courses</a></li>

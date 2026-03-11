@@ -88,7 +88,6 @@ export default factories.createCoreController('api::quiz.quiz', ({ strapi }) => 
             let aiResult: string | undefined;
 
             if (isShortAnswer) {
-                console.log("eval");
                 // Use Gemini for semantic evaluation
                 const evaluation = await evaluateAnswerWithGemini(
                     q.text,
