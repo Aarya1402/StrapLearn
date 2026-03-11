@@ -3,7 +3,7 @@
  * Shared type definitions for authentication & RBAC.
  */
 
-export type RoleType = 'org_admin' | 'instructor' | 'student';
+export type RoleType = 'super_admin' | 'org_admin' | 'instructor' | 'student';
 
 export interface StrapiUser {
     id: number;

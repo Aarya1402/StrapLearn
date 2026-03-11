@@ -1,5 +1,5 @@
 import { getCourseBySlug, checkEnrollment } from '@/lib/course';
-import { getCurrentJwt } from '@/lib/server-auth';
+import { getCurrentJwt, getCurrentUser } from '@/lib/server-auth';
 import { enrollAction } from '@/actions/enrollment.actions';
 import { notFound } from 'next/navigation';
 
@@ -13,7 +13,10 @@ export default async function CourseDetailPage({ params }: Props) {
   if (!course) notFound();
 
   const jwt = await getCurrentJwt();
+  const user = await getCurrentUser();
   const isEnrolled = jwt ? await checkEnrollment(course.documentId, jwt) : false;
+  const isSuper = user?.role_type === 'super_admin';
+  const hasAccess = isEnrolled || isSuper;
 
   return (
     <div style={{ fontFamily: 'monospace', maxWidth: 800, margin: '0 auto', padding: 24 }}>
@@ -68,7 +71,7 @@ export default async function CourseDetailPage({ params }: Props) {
                       {Math.floor(lesson.duration / 60)}m {lesson.duration % 60}s
                     </span>
                   )}
-                  {lesson.isFree || isEnrolled
+                  {lesson.isFree || hasAccess
                     ? <span style={{ fontSize: 11, color: '#10b981', background: '#ecfdf5', padding: '2px 6px', borderRadius: 4 }}>VIEW</span>
                     : <span style={{ fontSize: 13, color: '#aaa' }}>🔒</span>
                   }
@@ -99,7 +102,7 @@ export default async function CourseDetailPage({ params }: Props) {
                   style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', textDecoration: 'none', color: 'inherit' }}
                 >
                   <span style={{ flex: 1 }}>{quiz.title}</span>
-                  {isEnrolled
+                  {hasAccess
                     ? <span style={{ fontSize: 11, color: '#3b82f6', background: '#eff6ff', padding: '2px 6px', borderRadius: 4 }}>START</span>
                     : <span style={{ fontSize: 13, color: '#aaa' }}>🔒</span>
                   }
@@ -116,7 +119,7 @@ export default async function CourseDetailPage({ params }: Props) {
           {course.isFree ? '🆓 Free' : `₹${course.price ?? 0}`}
         </p>
         <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-          {isEnrolled ? (
+          {hasAccess ? (
             <a
               href={`/courses/${slug}/lessons/${course.lessons?.[0]?.slug}`}
               style={{ display: 'inline-block', padding: '12px 32px', background: '#10b981', color: '#fff', textDecoration: 'none', borderRadius: 6 }}
@@ -144,7 +147,7 @@ export default async function CourseDetailPage({ params }: Props) {
             </a>
           )}
 
-          {!isEnrolled && course.lessons && course.lessons.length > 0 && (
+          {!hasAccess && course.lessons && course.lessons.length > 0 && (
             <a
               href={`/courses/${slug}/lessons/${course.lessons[0].slug}`}
               style={{ display: 'inline-block', padding: '12px 32px', background: '#f3f4f6', color: '#000', textDecoration: 'none', borderRadius: 6 }}

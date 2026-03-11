@@ -75,10 +75,23 @@ export async function getMe(jwt: string): Promise<StrapiUser> {
     return res.json();
 }
 
+// ─── Get all users (Super Admin only) ────────────────────────────────────────
+
+export async function getAllUsers(jwt: string): Promise<StrapiUser[]> {
+    const res = await fetch(`${STRAPI_URL}/api/users?populate=organization`, {
+        headers: { Authorization: `Bearer ${jwt}` },
+        cache: 'no-store',
+    });
+    if (!res.ok) throw new Error('Failed to fetch users');
+    return res.json();
+}
+
 // ─── Role helpers ─────────────────────────────────────────────────────────────
 
 export function getDashboardPath(roleType: string): string {
     switch (roleType) {
+        case 'super_admin':
+            return '/dashboard/super';
         case 'org_admin':
             return '/dashboard/admin';
         case 'instructor':
@@ -89,12 +102,16 @@ export function getDashboardPath(roleType: string): string {
     }
 }
 
+export function isSuperAdmin(roleType?: string) {
+    return roleType === 'super_admin';
+}
+
 export function isOrgAdmin(roleType?: string) {
-    return roleType === 'org_admin';
+    return roleType === 'org_admin' || roleType === 'super_admin';
 }
 
 export function isInstructor(roleType?: string) {
-    return roleType === 'instructor' || roleType === 'org_admin';
+    return roleType === 'instructor' || roleType === 'org_admin' || roleType === 'super_admin';
 }
 
 export function isStudent(roleType?: string) {

@@ -46,6 +46,7 @@ export function proxy(request: NextRequest) {
     // ── 3. Role-based access — only enforce when role cookie is present ───────────
     if (roleType && pathname.startsWith('/dashboard')) {
         const ROLE_ALLOWED: Record<string, string[]> = {
+            super_admin: ['/dashboard'], // Super admin has access to all dashboard routes
             org_admin: [
                 '/dashboard/admin',
                 '/dashboard/instructor',
@@ -72,6 +73,7 @@ function getDashboardPath(roleType?: string): string {
     switch (roleType) {
         case 'org_admin': return '/dashboard/admin';
         case 'instructor': return '/dashboard/instructor';
+        case 'super_admin': return '/dashboard/super';
         default: return '/dashboard/student';
     }
 }

@@ -1372,7 +1372,7 @@ export interface PluginUsersPermissionsUser
       'plugin::users-permissions.role'
     >;
     role_type: Schema.Attribute.Enumeration<
-      ['org_admin', 'instructor', 'student']
+      ['org_admin', 'instructor', 'student', 'super_admin']
     > &
       Schema.Attribute.DefaultTo<'student'>;
     updatedAt: Schema.Attribute.DateTime;

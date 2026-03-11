@@ -16,7 +16,7 @@ export default factories.createCoreController('api::course.course', ({ strapi })
             return ctx.unauthorized('You must be logged in to create a course.');
         }
 
-        const isAdmin = user.role_type === 'org_admin';
+        const isAdmin = user.role_type === 'org_admin' || user.role_type === 'super_admin';
 
         // Capture requested instructor BEFORE we strip it from the body
         const requestedInstructorRaw = (ctx.request.body as any)?.data?.instructor ?? null;

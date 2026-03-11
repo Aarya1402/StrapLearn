@@ -73,6 +73,7 @@ export async function requireRole(...roles: RoleType[]): Promise<StrapiUser> {
 
 export function getDashboardPath(roleType?: string): string {
     switch (roleType) {
+        case 'super_admin': return '/dashboard/super';
         case 'org_admin': return '/dashboard/admin';
         case 'instructor': return '/dashboard/instructor';
         default: return '/dashboard/student';

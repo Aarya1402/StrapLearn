@@ -6,6 +6,15 @@ export default {
   routes: [
     {
       method: "GET",
+      path: "/analytics/system-overview",
+      handler: "analytics.systemOverview",
+      config: {
+        policies: [],
+        middlewares: [],
+      },
+    },
+    {
+      method: "GET",
       path: "/analytics/org-overview",
       handler: "analytics.orgOverview",
       config: {

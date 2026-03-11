@@ -18,7 +18,7 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
             return ctx.badRequest('username, email and password are required');
         }
 
-        const allowedRoles = ['org_admin', 'instructor', 'student'];
+        const allowedRoles = ['super_admin', 'org_admin', 'instructor', 'student'];
         const resolvedRole = allowedRoles.includes(role_type) ? role_type : 'student';
 
         // Check registration is allowed

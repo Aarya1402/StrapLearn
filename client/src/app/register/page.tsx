@@ -40,6 +40,7 @@ export default async function RegisterPage() {
             <option value="student">Student</option>
             <option value="instructor">Instructor</option>
             <option value="org_admin">Org Admin</option>
+            <option value="super_admin">Super Admin </option>
           </select>
         </label>
         <button type="submit" style={{ padding: '10px', cursor: 'pointer' }}>

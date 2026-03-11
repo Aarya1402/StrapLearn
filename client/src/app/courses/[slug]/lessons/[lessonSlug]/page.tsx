@@ -166,7 +166,7 @@ export default async function LessonViewerPage({ params }: Props) {
       // Also allow org_admins/instructors to see their own org courses
       if (!canAccess) {
          const user = await requireAuth();
-         if (user.role_type === 'org_admin' || user.role_type === 'instructor') {
+         if (user.role_type==='super_admin' || user.role_type === 'org_admin' || user.role_type === 'instructor') {
             canAccess = true;
          }
       }

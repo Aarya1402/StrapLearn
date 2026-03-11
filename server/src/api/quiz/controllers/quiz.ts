@@ -11,7 +11,7 @@ export default factories.createCoreController('api::quiz.quiz', ({ strapi }) => 
         const user = ctx.state.user;
         if (!user) return ctx.unauthorized();
 
-        const isAdmin = user.role_type === 'org_admin';
+        const isAdmin = user.role_type === 'org_admin' || user.role_type === 'super_admin';
 
         // Force create status based on role
         ctx.query = {

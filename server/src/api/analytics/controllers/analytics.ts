@@ -3,6 +3,39 @@
  */
 
 export default {
+  async systemOverview(ctx) {
+    const user = ctx.state.user;
+    if (user?.role_type !== 'super_admin') {
+      return ctx.forbidden('Only super admins can access global system overview.');
+    }
+    const orgCount = await strapi.db.query('api::organization.organization').count();
+    const studentCount = await strapi.db.query('plugin::users-permissions.user').count({
+      where: { role_type: 'student' }
+    });
+    const instructorCount = await strapi.db.query('plugin::users-permissions.user').count({
+      where: { role_type: 'instructor' }
+    });
+    const courseCount = await strapi.db.query('api::course.course').count();
+    const enrollmentCount = await strapi.db.query('api::enrollment.enrollment').count();
+
+    // System Health Mock
+    const health = {
+      status: 'Healthy',
+      uptime: '99.9%',
+      serverLoad: '12%',
+      lastBackup: new Date().toISOString()
+    };
+
+    return {
+      orgCount,
+      studentCount,
+      instructorCount,
+      courseCount,
+      enrollmentCount,
+      health
+    };
+  },
+
   async orgOverview(ctx) {
     const organization = ctx.state.organization;
 

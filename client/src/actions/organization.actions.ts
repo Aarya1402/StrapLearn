@@ -120,3 +120,63 @@ export async function deactivateOrganizationAction(documentId: string) {
     revalidatePath('/dashboard/admin/organizations');
     redirect('/dashboard/admin/organizations');
 }
+
+// ─── Super Admin: Update Org (In-place) ──────────────────────────────────────
+
+export async function updateOrgSuperAction(documentId: string, data: any) {
+    const jwt = await getCurrentJwt();
+    if (!jwt) throw new Error('Unauthorized');
+
+    const res = await fetch(`${STRAPI_URL}/api/organizations/${documentId}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${jwt}`,
+        },
+        body: JSON.stringify({ data }),
+    });
+
+    if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err?.error?.message || 'Update failed');
+    }
+
+    revalidatePath(`/dashboard/super/organizations`);
+    revalidatePath(`/dashboard/super/organizations/${documentId}`);
+    return await res.json();
+}
+
+// ─── Super Admin: Create Organization ───────────────────────────────────────
+
+export async function createOrgSuperAction(formData: FormData) {
+    const jwt = await getCurrentJwt();
+    if (!jwt) throw new Error('Unauthorized');
+
+    const logoFile = formData.get('logo') as File | null;
+    const logoId = logoFile && logoFile.size > 0 ? await uploadLogo(logoFile, jwt) : null;
+
+    const payload: Record<string, unknown> = {
+        name: formData.get('name'),
+        primaryColor: formData.get('primaryColor') || '#111111',
+        supportEmail: formData.get('supportEmail') || '',
+        isActive: true,
+    };
+    if (logoId) payload.logo = logoId;
+
+    const res = await fetch(`${STRAPI_URL}/api/organizations`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${jwt}`,
+        },
+        body: JSON.stringify({ data: payload }),
+    });
+
+    if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err?.error?.message || 'Failed to create organization');
+    }
+
+    revalidatePath('/dashboard/super/organizations');
+    redirect('/dashboard/super/organizations');
+}

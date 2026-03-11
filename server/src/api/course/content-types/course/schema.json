@@ -28,11 +28,17 @@
       "type": "media",
       "multiple": false,
       "required": false,
-      "allowedTypes": ["images"]
+      "allowedTypes": [
+        "images"
+      ]
     },
     "level": {
       "type": "enumeration",
-      "enum": ["beginner", "intermediate", "advanced"],
+      "enum": [
+        "beginner",
+        "intermediate",
+        "advanced"
+      ],
       "required": true,
       "default": "beginner"
     },

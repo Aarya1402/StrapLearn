@@ -13,9 +13,9 @@ export default async (policyContext, config, { strapi }) => {
     console.log('[is-enrolled Policy] Request Body:', policyContext.request.body);
     console.log('[is-enrolled Policy] Handler:', policyContext.state.route.handler);
 
-    // Allow Org Admins to see everything in their org
-    if (user.role_type === 'org_admin') {
-        console.log('[is-enrolled Policy] Org Admin bypass applied.');
+    // Allow Org Admins and Super Admins to see everything
+    if (user.role_type === 'org_admin' || user.role_type === 'super_admin') {
+        console.log('[is-enrolled Policy] Admin bypass applied.');
         return true;
     }
 
@@ -50,6 +50,7 @@ export default async (policyContext, config, { strapi }) => {
         // If it's a progress route, it might pass lessonId. 
         // If it's a course route passing lessonId, logic still applies.
         const lessonDocId = lessonIdParam || bodyLessonId || documentId;
+        const allowedRoles = ['super_admin', 'org_admin', 'instructor', 'student'];
         const lesson = await strapi.documents('api::lesson.lesson').findOne({
             documentId: lessonDocId,
             populate: ['course'],

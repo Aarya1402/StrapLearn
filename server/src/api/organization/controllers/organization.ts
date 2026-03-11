@@ -15,7 +15,7 @@ export default factories.createCoreController('api::organization.organization', 
         if (!user) return ctx.unauthorized('Authentication required.');
 
         // Only org_admin (and super-admin) should call this endpoint
-        if (user.role_type !== 'org_admin') {
+        if (user.role_type !== 'org_admin' && user.role_type !== 'super_admin') {
             return ctx.forbidden('Only organization admins can list instructors.');
         }
 
