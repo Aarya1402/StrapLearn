@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { submitQuizAction } from '@/actions/quiz.actions';
 import { Question, Quiz } from '@/lib/types/course';
+import { CheckCircle2, XCircle, AlertCircle, Loader2, Sparkles, RefreshCcw, Send } from 'lucide-react';
 
 interface Props {
   quiz: Quiz;
@@ -38,64 +39,72 @@ export default function QuizPlayer({ quiz, courseSlug }: Props) {
   };
 
   if (result) {
+    const isPassed = result.isPassed;
     return (
-      <div style={{ padding: 24, border: '1px solid #eee', borderRadius: 12, background: '#fff' }}>
-        <h2 style={{ color: result.isPassed ? '#10b981' : '#ef4444' }}>
-          {result.isPassed ? '🎉 Quiz Passed!' : '❌ Quiz Failed'}
-        </h2>
-        <div style={{ fontSize: 48, fontWeight: 'bold', margin: '20px 0' }}>
-          {result.score}%
+      <div className="mx-auto max-w-2xl space-y-8 rounded-3xl border border-border bg-card p-8 shadow-premium sm:p-12">
+        <div className="text-center">
+          <div className={`mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-3xl ${isPassed ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'} shadow-lg`}>
+            {isPassed ? <Sparkles size={40} /> : <AlertCircle size={40} />}
+          </div>
+          <h2 className={`text-3xl font-extrabold ${isPassed ? 'text-emerald-600' : 'text-red-600'}`}>
+            {isPassed ? 'Congratulations!' : 'Almost there!'}
+          </h2>
+          <p className="mt-2 text-lg font-medium text-muted-foreground">
+            {isPassed ? 'You passed the quiz with' : 'You scored'}
+          </p>
+          <div className="mt-4 text-7xl font-black tracking-tighter">
+            {result.score}%
+          </div>
+          <p className="mt-4 text-sm font-semibold text-muted-foreground uppercase tracking-widest">
+            Passing Score: {result.passingScore}%
+          </p>
         </div>
-        <p style={{ color: '#666' }}>
-          Passing score: {result.passingScore}%
-        </p>
 
-        <div style={{ marginTop: 32 }}>
-          <h3>Review Answers</h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 16 }}>
+        <div className="space-y-6 pt-10 border-t border-border">
+          <h3 className="text-xl font-bold">Review Your Answers</h3>
+          <div className="space-y-4">
             {result.detailedResults.map((res: any, i: number) => {
               const q = questions.find(question => question.documentId === res.questionDocumentId);
-              const bg = res.isCorrect ? '#f0fdf4' : res.isPartial ? '#fffbeb' : '#fef2f2';
-              const answerColor = res.isCorrect ? '#10b981' : res.isPartial ? '#d97706' : '#ef4444';
               return (
-                <div key={i} style={{ padding: 16, border: '1px solid #eee', borderRadius: 8, background: bg }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <p style={{ fontWeight: 'bold', margin: 0 }}>{i + 1}. {q?.text}</p>
+                <div 
+                  key={i} 
+                  className={`relative overflow-hidden rounded-2xl border p-5 transition-all ${
+                    res.isCorrect ? 'border-emerald-200 bg-emerald-50/30' : 
+                    res.isPartial ? 'border-amber-200 bg-amber-50/30' : 'border-red-200 bg-red-50/30'
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <p className="font-bold leading-tight">{i + 1}. {q?.text}</p>
                     {res.aiGraded && (
-                      <span style={{ fontSize: 11, background: '#e0e7ff', color: '#4f46e5', padding: '2px 8px', borderRadius: 12, fontWeight: 600, whiteSpace: 'nowrap' }}>
-                        🤖 AI Graded
+                      <span className="inline-flex items-center gap-1 rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-indigo-700">
+                        <Sparkles size={10} /> AI Graded
                       </span>
                     )}
                   </div>
-                  <p style={{ fontSize: 13, marginTop: 8 }}>
-                    Your answer: <span style={{ color: answerColor }}>{res.userAnswer || '(No answer)'}</span>
-                    {res.isPartial && <span style={{ marginLeft: 8, color: '#d97706' }}>⚡ Partial credit</span>}
-                  </p>
-                  {!res.isCorrect && (
-                    <p style={{ fontSize: 13, color: '#10b981', marginTop: 4 }}>
-                      Correct answer: {res.correctAnswer}
+                  
+                  <div className="mt-4 space-y-2 text-sm">
+                    <p className="flex items-center gap-2">
+                      <span className="font-semibold text-muted-foreground">Your answer:</span>
+                      <span className={res.isCorrect ? 'text-emerald-700 font-bold' : res.isPartial ? 'text-amber-700 font-bold' : 'text-red-700 font-bold'}>
+                        {res.userAnswer || '(No answer)'}
+                      </span>
+                      {res.isPartial && <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-700">Partial Credit</span>}
+                      {res.isCorrect ? <CheckCircle2 size={16} className="text-emerald-600" /> : <XCircle size={16} className="text-red-600" />}
                     </p>
-                  )}
-                  {res.aiGraded && res.feedback && (
-                    <p style={{ fontSize: 13, color: '#555', marginTop: 6, fontStyle: 'italic' }}>
-                      💬 {res.feedback}
-                    </p>
-                  )}
-                  {res.aiGraded && res.missing_points && res.missing_points.length > 0 && (
-                    <div style={{ marginTop: 6 }}>
-                      <p style={{ fontSize: 12, color: '#888', margin: '0 0 4px' }}>Missing points:</p>
-                      <ul style={{ margin: 0, paddingLeft: 20 }}>
-                        {res.missing_points.map((pt: string, pi: number) => (
-                          <li key={pi} style={{ fontSize: 12, color: '#ef4444' }}>{pt}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                  {res.pointsText && (
-                    <p style={{ fontSize: 12, color: '#888', marginTop: 6 }}>
-                      Points: {res.pointsText}
-                    </p>
-                  )}
+                    
+                    {!res.isCorrect && (
+                      <p className="flex items-center gap-2">
+                        <span className="font-semibold text-muted-foreground">Correct answer:</span>
+                        <span className="text-emerald-700 font-medium">{res.correctAnswer}</span>
+                      </p>
+                    )}
+
+                    {res.aiGraded && res.feedback && (
+                      <div className="mt-3 rounded-xl bg-card p-3 text-xs italic text-muted-foreground shadow-sm">
+                        "{res.feedback}"
+                      </div>
+                    )}
+                  </div>
                 </div>
               );
             })}
@@ -104,17 +113,9 @@ export default function QuizPlayer({ quiz, courseSlug }: Props) {
 
         <button
           onClick={() => window.location.reload()}
-          style={{
-            marginTop: 32,
-            padding: '12px 24px',
-            background: '#000',
-            color: '#fff',
-            border: 'none',
-            borderRadius: 8,
-            cursor: 'pointer',
-            fontWeight: 'bold',
-          }}
+          className="flex w-full items-center justify-center gap-2 rounded-2xl bg-foreground py-4 text-base font-bold text-background transition-all hover:bg-foreground/90 active:scale-[0.98]"
         >
+          <RefreshCcw size={20} />
           Retake Quiz
         </button>
       </div>
@@ -122,57 +123,87 @@ export default function QuizPlayer({ quiz, courseSlug }: Props) {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
+    <div className="mx-auto max-w-3xl space-y-8">
       {questions.map((q, i) => (
-        <div key={q.documentId} style={{ padding: 24, border: '1px solid #eee', borderRadius: 12, background: '#fff' }}>
-          <p style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 20 }}>
-            {i + 1}. {q.text}
-          </p>
+        <div key={q.documentId} className="group rounded-3xl border border-border bg-card p-8 shadow-premium transition-all hover:shadow-premium-hover">
+          <div className="mb-6 flex items-start gap-4">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-secondary text-sm font-bold text-muted-foreground">
+              {i + 1}
+            </span>
+            <p className="text-xl font-bold tracking-tight text-foreground">
+              {q.text}
+            </p>
+          </div>
 
-          {q.type === 'mcq' || q.type === 'true-false' ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {((q.options && q.options.length > 0) ? q.options as string[] : (q.type === 'true-false' ? ['True', 'False'] : [])).map((opt) => (
-                <label key={opt} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', padding: '10px 16px', border: '1px solid #eee', borderRadius: 8, background: answers[q.documentId] === opt ? '#f3f4f6' : 'transparent' }}>
-                  <input
-                    type="radio"
-                    name={q.documentId}
-                    value={opt}
-                    checked={answers[q.documentId] === opt}
-                    onChange={() => handleOptionChange(q.documentId, opt)}
-                  />
-                  {opt}
-                </label>
-              ))}
-            </div>
-          ) : (
-            <input
-              type="text"
-              placeholder="Your answer..."
-              value={answers[q.documentId] || ''}
-              onChange={(e) => handleOptionChange(q.documentId, e.target.value)}
-              style={{ width: '100%', padding: '12px', borderRadius: 8, border: '1px solid #eee' }}
-            />
-          )}
+          <div className="grid gap-3">
+            {q.type === 'mcq' || q.type === 'true-false' ? (
+              ((q.options && q.options.length > 0) ? q.options as string[] : (q.type === 'true-false' ? ['True', 'False'] : [])).map((opt) => {
+                const isSelected = answers[q.documentId] === opt;
+                return (
+                  <label 
+                    key={opt} 
+                    className={`
+                      group relative flex cursor-pointer items-center gap-3 overflow-hidden rounded-2xl border-2 px-6 py-4 transition-all
+                      ${isSelected 
+                        ? 'border-brand-500 bg-brand-50/50 text-brand-700 shadow-md shadow-brand-500/10' 
+                        : 'border-border bg-background hover:border-brand-300 hover:bg-secondary/30'
+                      }
+                    `}
+                  >
+                    <div className={`
+                      flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-all
+                      ${isSelected ? 'border-brand-500 bg-brand-500' : 'border-muted-foreground/30'}
+                    `}>
+                      {isSelected && <div className="h-2 w-2 rounded-full bg-white" />}
+                    </div>
+                    <input
+                      type="radio"
+                      className="hidden"
+                      name={q.documentId}
+                      value={opt}
+                      checked={isSelected}
+                      onChange={() => handleOptionChange(q.documentId, opt)}
+                    />
+                    <span className="font-semibold">{opt}</span>
+                    {isSelected && <CheckCircle2 className="absolute right-4 top-1/2 -translate-y-1/2 text-brand-600" size={20} />}
+                  </label>
+                );
+              })
+            ) : (
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Type your answer here..."
+                  value={answers[q.documentId] || ''}
+                  onChange={(e) => handleOptionChange(q.documentId, e.target.value)}
+                  className="w-full rounded-2xl border-2 border-border bg-background px-6 py-4 text-base font-medium placeholder:text-muted-foreground focus:border-brand-500 focus:outline-none transition-all"
+                />
+              </div>
+            )}
+          </div>
         </div>
       ))}
 
-      <button
-        onClick={handleSubmit}
-        disabled={isSubmitting}
-        style={{
-          padding: '16px 32px',
-          background: isSubmitting ? '#ccc' : '#3b82f6',
-          color: '#fff',
-          border: 'none',
-          borderRadius: 8,
-          cursor: isSubmitting ? 'not-allowed' : 'pointer',
-          fontSize: 16,
-          fontWeight: 'bold',
-          alignSelf: 'flex-start',
-        }}
-      >
-        {isSubmitting ? 'Submitting...' : 'Submit Quiz'}
-      </button>
+      <div className="pt-6">
+        <button
+          onClick={handleSubmit}
+          disabled={isSubmitting}
+          className="group flex items-center justify-center gap-2 rounded-2xl bg-brand-500 px-10 py-5 text-lg font-bold text-white shadow-xl shadow-brand-500/20 transition-all hover:bg-brand-600 hover:-translate-y-1 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isSubmitting ? (
+            <>
+              <Loader2 className="animate-spin" size={24} />
+              <span>Submitting...</span>
+            </>
+          ) : (
+            <>
+              <Send size={24} />
+              <span>Finish & Submit Quiz</span>
+            </>
+          )}
+        </button>
+      </div>
     </div>
   );
 }
+

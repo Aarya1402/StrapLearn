@@ -3,6 +3,7 @@
 import { completeCourseAction } from '@/actions/enrollment.actions';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { CheckCircle2, Loader2, Trophy } from 'lucide-react';
 
 interface Props {
   courseId: string;
@@ -39,18 +40,26 @@ export default function FinishCourseButton({ courseId, courseSlug }: Props) {
     <button
       onClick={handleFinish}
       disabled={isPending}
-      style={{
-        background: 'none',
-        border: 'none',
-        color: '#000',
-        cursor: 'pointer',
-        padding: 0,
-        fontFamily: 'inherit',
-        fontSize: 'inherit',
-        textDecoration: 'none',
-      }}
+      className={`
+        flex items-center gap-2 rounded-xl px-6 py-3 text-sm font-bold transition-all active:scale-[0.98]
+        ${isPending 
+          ? 'bg-secondary text-muted-foreground cursor-not-allowed' 
+          : 'bg-brand-500 text-white hover:bg-brand-600 hover:shadow-lg shadow-brand-500/20'
+        }
+      `}
     >
-      {isPending ? 'Processing...' : '✅ Finish course'}
+      {isPending ? (
+        <>
+          <Loader2 size={18} className="animate-spin" />
+          <span>Processing...</span>
+        </>
+      ) : (
+        <>
+          <Trophy size={18} />
+          <span>Finish Course & Claim Certificate</span>
+        </>
+      )}
     </button>
   );
 }
+

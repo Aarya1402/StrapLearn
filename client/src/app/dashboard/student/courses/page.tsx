@@ -1,5 +1,6 @@
 import { getMyEnrollments } from '@/lib/course';
 import { getCurrentJwt, requireAuth } from '@/lib/server-auth';
+import { BookOpen, Calendar, CheckCircle2, ArrowRight } from 'lucide-react';
 
 export default async function MyCoursesPage() {
   const user = await requireAuth();
@@ -7,21 +8,30 @@ export default async function MyCoursesPage() {
   const enrollments = jwt ? await getMyEnrollments(jwt) : [];
 
   return (
-    <div>
-      <h1 style={{ marginBottom: 24 }}>My Courses</h1>
+    <div className="space-y-8">
+      <div className="flex flex-col gap-2">
+        <h1 className="text-3xl font-bold tracking-tight text-foreground">My Courses</h1>
+        <p className="text-muted-foreground text-lg">Continue your learning journey where you left off.</p>
+      </div>
       
       {enrollments.length === 0 ? (
-        <div style={{ padding: 40, textAlign: 'center', background: '#f9fafb', borderRadius: 8 }}>
-          <p style={{ color: '#666' }}>You are not enrolled in any courses yet.</p>
+        <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-border bg-muted/30 py-24 text-center">
+          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-secondary text-muted-foreground">
+            <BookOpen size={32} />
+          </div>
+          <h3 className="text-xl font-bold mb-2">You haven't enrolled yet</h3>
+          <p className="max-w-xs text-muted-foreground mb-8">
+            Explore our catalog and find the perfect course to start learning.
+          </p>
           <a
             href="/courses"
-            style={{ display: 'inline-block', marginTop: 12, padding: '8px 16px', background: '#000', color: '#fff', textDecoration: 'none', borderRadius: 4 }}
+            className="inline-flex items-center justify-center rounded-xl bg-brand-500 px-8 py-3 text-sm font-bold text-white transition-all hover:bg-brand-600 hover:shadow-lg active:scale-95 shadow-brand-500/20"
           >
-            Browse Courses
+            Browse Catalog
           </a>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 24 }}>
+        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
           {enrollments.map((enrollment: any) => {
             const course = enrollment.course;
             if (!course) return null;
@@ -31,58 +41,58 @@ export default async function MyCoursesPage() {
             return (
               <div
                 key={enrollment.documentId}
-                style={{
-                  border: '1px solid #eee',
-                  borderRadius: 12,
-                  overflow: 'hidden',
-                  background: '#fff',
-                  boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
-                }}
+                className="group flex flex-col overflow-hidden rounded-3xl border border-border bg-card shadow-premium transition-all duration-300 hover:-translate-y-1 hover:shadow-premium-hover"
               >
                 {/* Thumbnail */}
-                <div style={{ height: 160, background: '#f3f4f6', position: 'relative' }}>
+                <div className="relative aspect-video w-full overflow-hidden bg-muted">
                   {course.thumbnail?.url ? (
                     <img
                       src={course.thumbnail.url.startsWith('http') ? course.thumbnail.url : `http://localhost:1337${course.thumbnail.url}`}
                       alt={course.title}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
                     />
                   ) : (
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#999' }}>
-                      No image
+                    <div className="flex h-full w-full items-center justify-center text-muted-foreground">
+                      <BookOpen size={48} className="opacity-20" />
                     </div>
                   )}
                   {isCompleted && (
-                    <div style={{ position: 'absolute', top: 12, right: 12, background: '#10b981', color: '#fff', padding: '4px 8px', borderRadius: 4, fontSize: 12, fontWeight: 'bold' }}>
-                      COMPLETED
+                    <div className="absolute top-4 right-4 flex items-center gap-1 rounded-full bg-emerald-500 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-white shadow-lg shadow-emerald-500/20">
+                      <CheckCircle2 size={12} />
+                      Completed
                     </div>
                   )}
                 </div>
 
                 {/* Content */}
-                <div style={{ padding: 16 }}>
-                  <h3 style={{ margin: '0 0 8px', fontSize: 18 }}>{course.title}</h3>
-                  <p style={{ fontSize: 13, color: '#666', margin: '0 0 16px', minHeight: 40 }}>
-                    {course.description ? course.description.substring(0, 100) + '...' : 'No description.'}
-                  </p>
+                <div className="flex flex-1 flex-col p-6">
+                  <div className="mb-4 flex-1">
+                    <h3 className="text-xl font-bold leading-tight group-hover:text-brand-600 transition-colors">
+                      {course.title}
+                    </h3>
+                    <p className="mt-3 line-clamp-2 text-sm text-muted-foreground leading-relaxed">
+                      {course.description || 'No description available for this course yet.'}
+                    </p>
+                  </div>
                   
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: 12, color: '#999' }}>
-                      Enrolled: {new Date(enrollment.enrolledAt).toLocaleDateString()}
-                    </span>
+                  <div className="flex flex-col gap-4 mt-2">
+                    <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                      <Calendar size={14} />
+                      Enrolled: {new Date(enrollment.enrolledAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                    </div>
+                    
                     <a
                       href={`/courses/${course.slug}`}
-                      style={{
-                        padding: '6px 12px',
-                        background: isCompleted ? '#f3f4f6' : '#000',
-                        color: isCompleted ? '#000' : '#fff',
-                        textDecoration: 'none',
-                        borderRadius: 6,
-                        fontSize: 14,
-                        fontWeight: 'bold',
-                      }}
+                      className={`
+                        flex items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold transition-all active:scale-[0.98]
+                        ${isCompleted 
+                          ? 'bg-secondary text-foreground hover:bg-secondary/80' 
+                          : 'bg-foreground text-background hover:bg-foreground/90'
+                        }
+                      `}
                     >
-                      {isCompleted ? 'Review' : 'Continue'}
+                      {isCompleted ? 'Review Course' : 'Continue Learning'}
+                      <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
                     </a>
                   </div>
                 </div>
@@ -94,3 +104,4 @@ export default async function MyCoursesPage() {
     </div>
   );
 }
+

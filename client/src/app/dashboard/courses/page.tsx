@@ -2,6 +2,7 @@ import { requireRole, getCurrentJwt } from '@/lib/server-auth';
 import { getAllCoursesForDashboard, getMyCourses } from '@/lib/course';
 import { publishCourseAction, unpublishCourseAction, deleteCourseAction } from '@/actions/course.actions';
 import type { Course } from '@/lib/types/course';
+import { Plus, Search, Filter, MoreVertical, Eye, Edit3, CheckCircle, FileText, Trash2, Globe, Lock } from 'lucide-react';
 
 export default async function DashboardCoursesPage({ 
   searchParams 
@@ -12,78 +13,163 @@ export default async function DashboardCoursesPage({
   const jwt = (await getCurrentJwt())!;
   const filter = (await searchParams).filter;
 
-  // filter=my → call the dedicated /courses/my endpoint (Strapi v5 blocks filtering
-  // on plugin::users-permissions.user relations through the standard REST API).
-  // No filter → fetch all courses in the org.
   const courses: Course[] = filter === 'my'
     ? await getMyCourses(jwt)
     : await getAllCoursesForDashboard(jwt, user.organization?.slug);
 
   return (
-    <div style={{ fontFamily: 'monospace' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h1>{filter === 'my' ? 'My Courses' : 'All Courses'}</h1>
-        <a href="/dashboard/courses/new" style={{ padding: '8px 16px', background: '#000', color: '#fff', textDecoration: 'none' }}>
-          + New Course
+    <div className="space-y-8">
+      <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-3xl font-black tracking-tight text-foreground">
+            {filter === 'my' ? 'My Curriculum' : 'Global Catalog'}
+          </h1>
+          <p className="text-muted-foreground mt-1 text-lg">Manage, curate and publish your educational content.</p>
+        </div>
+        <a 
+          href="/dashboard/courses/new" 
+          className="flex items-center justify-center gap-2 rounded-2xl bg-brand-500 px-6 py-3.5 text-sm font-bold text-white shadow-xl shadow-brand-500/20 transition-all hover:bg-brand-600 hover:-translate-y-1 active:scale-95"
+        >
+          <Plus size={20} />
+          Create New Course
         </a>
       </div>
 
-      {courses.length === 0 && (
-        <p>No courses yet. <a href="/dashboard/courses/new">Create your first course</a>.</p>
-      )}
+      <div className="rounded-3xl border border-border bg-card shadow-premium overflow-hidden">
+        <div className="flex items-center justify-between border-b border-border bg-muted/30 px-8 py-6">
+          <div className="flex items-center gap-3">
+             <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
+                <input 
+                  type="text" 
+                  placeholder="Search courses..." 
+                  className="h-10 w-64 rounded-xl border border-input bg-background pl-10 pr-4 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+                />
+             </div>
+             <button className="flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-card text-muted-foreground hover:bg-secondary">
+               <Filter size={18} />
+             </button>
+          </div>
+          <div className="flex h-10 items-center rounded-xl bg-secondary/50 p-1">
+             <a 
+               href="/dashboard/courses" 
+               className={`rounded-lg px-4 py-2 text-xs font-black uppercase tracking-widest transition-all ${!filter ? 'bg-card text-brand-600 shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+             >
+               All
+             </a>
+             <a 
+               href="/dashboard/courses?filter=my" 
+               className={`rounded-lg px-4 py-2 text-xs font-black uppercase tracking-widest transition-all ${filter === 'my' ? 'bg-card text-brand-600 shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+             >
+               Mine
+             </a>
+          </div>
+        </div>
 
-      <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: 16 }}>
-        <thead>
-          <tr style={{ borderBottom: '2px solid #ccc', textAlign: 'left' }}>
-            <th style={{ padding: 8 }}>Title</th>
-            <th style={{ padding: 8 }}>Level</th>
-            <th style={{ padding: 8 }}>Price</th>
-            <th style={{ padding: 8 }}>Status</th>
-            <th style={{ padding: 8 }}>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {courses.map((course) => (
-            <tr key={course.documentId} style={{ borderBottom: '1px solid #eee' }}>
-              <td style={{ padding: 8 }}>
-                <strong>{course.title}</strong>
-                <br />
-                <code style={{ fontSize: 11, color: '#888' }}>{course.slug}</code>
-              </td>
-              <td style={{ padding: 8 }}>{course.level}</td>
-              <td style={{ padding: 8 }}>{course.isFree ? '🆓 Free' : `₹${course.price ?? 0}`}</td>
-              <td style={{ padding: 8 }}>
-                {course.publishedAt ? '✅ Published' : '📝 Draft'}
-              </td>
-              <td style={{ padding: 8, display: 'flex', gap: 8 }}>
-                <a href={`/dashboard/courses/${course.documentId}`} style={{ color: '#3b82f6' }}>Edit</a>
-                <a href={`/courses/${course.slug}`} target="_blank" style={{ color: '#10b981', textDecoration: 'none' }}>Preview</a>
-                {/* Publish / Unpublish */}
-                {user.role_type === 'org_admin' && (
-                  course.publishedAt ? (
-                    <form action={unpublishCourseAction.bind(null, course.documentId)} style={{ display: 'inline' }}>
-                      <button type="submit" style={{ background: 'none', border: 'none', color: '#f59e0b', cursor: 'pointer', padding: 0 }}>
-                        Unpublish
-                      </button>
-                    </form>
-                  ) : (
-                    <form action={publishCourseAction.bind(null, course.documentId)} style={{ display: 'inline' }}>
-                      <button type="submit" style={{ background: 'none', border: 'none', color: '#10b981', cursor: 'pointer', padding: 0 }}>
-                        Publish
-                      </button>
-                    </form>
-                  )
-                )}
-                <form action={deleteCourseAction.bind(null, course.documentId)} style={{ display: 'inline' }}>
-                  <button type="submit" style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: 0 }}>
-                    Delete
-                  </button>
-                </form>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="border-b border-border/50">
+                <th className="px-8 py-4 text-xs font-black uppercase tracking-widest text-muted-foreground">Course Asset</th>
+                <th className="px-8 py-4 text-xs font-black uppercase tracking-widest text-muted-foreground">Expertise</th>
+                <th className="px-8 py-4 text-xs font-black uppercase tracking-widest text-muted-foreground">Valuation</th>
+                <th className="px-8 py-4 text-xs font-black uppercase tracking-widest text-muted-foreground">Status</th>
+                <th className="px-8 py-4 text-xs font-black uppercase tracking-widest text-muted-foreground text-right">Operations</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border/30">
+              {courses.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-8 py-20 text-center">
+                    <div className="flex flex-col items-center gap-3 opacity-40">
+                      <FileText size={48} />
+                      <p className="text-sm font-bold uppercase tracking-widest">No courses identified in this segment.</p>
+                      <a href="/dashboard/courses/new" className="text-brand-600 underline">Deploy first course</a>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                courses.map((course) => (
+                  <tr key={course.documentId} className="group hover:bg-secondary/30 transition-colors">
+                    <td className="px-8 py-6">
+                      <div className="font-bold text-foreground leading-tight group-hover:text-brand-600 transition-colors uppercase tracking-tight">{course.title}</div>
+                      <div className="mt-1 font-mono text-[10px] text-muted-foreground opacity-60">REF: {course.slug}</div>
+                    </td>
+                    <td className="px-8 py-6">
+                      <span className="rounded-lg bg-secondary px-2 py-1 text-[10px] font-black uppercase tracking-tighter text-muted-foreground">{course.level}</span>
+                    </td>
+                    <td className="px-8 py-6">
+                      <div className="flex items-center gap-1.5 font-black text-foreground">
+                        {course.isFree ? (
+                          <span className="text-emerald-600">FREE</span>
+                        ) : (
+                          <>
+                            <span className="text-muted-foreground text-xs opacity-50">₹</span>
+                            {course.price ?? 0}
+                          </>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-8 py-6">
+                      <span className={`
+                        inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-widest
+                        ${course.publishedAt ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20' : 'bg-amber-50 text-amber-600 dark:bg-amber-900/20'}
+                      `}>
+                        {course.publishedAt ? <Globe size={12} /> : <Lock size={12} />}
+                        {course.publishedAt ? 'Public' : 'Staging'}
+                      </span>
+                    </td>
+                    <td className="px-8 py-6 text-right whitespace-nowrap">
+                      <div className="flex items-center justify-end gap-2">
+                        <a 
+                          href={`/courses/${course.slug}`} 
+                          target="_blank" 
+                          className="flex h-9 w-9 items-center justify-center rounded-xl bg-card border border-border text-muted-foreground shadow-sm transition-all hover:bg-emerald-50 hover:text-emerald-600"
+                          title="Preview"
+                        >
+                          <Eye size={16} />
+                        </a>
+                        <a 
+                          href={`/dashboard/courses/${course.documentId}`} 
+                          className="flex h-9 w-9 items-center justify-center rounded-xl bg-card border border-border text-muted-foreground shadow-sm transition-all hover:bg-brand-50 hover:text-brand-600"
+                          title="Edit"
+                        >
+                          <Edit3 size={16} />
+                        </a>
+                        
+                        {user.role_type === 'org_admin' && (
+                          <form action={course.publishedAt ? unpublishCourseAction.bind(null, course.documentId) : publishCourseAction.bind(null, course.documentId)}>
+                            <button 
+                              type="submit" 
+                              className={`
+                                flex h-9 w-24 items-center justify-center gap-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all
+                                ${course.publishedAt ? 'bg-amber-50 text-amber-600 hover:bg-amber-100' : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'}
+                              `}
+                            >
+                              {course.publishedAt ? 'Recall' : 'Deploy'}
+                            </button>
+                          </form>
+                        )}
+                        
+                        <form action={deleteCourseAction.bind(null, course.documentId)}>
+                          <button 
+                            type="submit" 
+                            className="flex h-9 w-9 items-center justify-center rounded-xl bg-card border border-border text-muted-foreground shadow-sm transition-all hover:bg-red-50 hover:text-red-600"
+                            title="Purge"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </form>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   );
 }
+

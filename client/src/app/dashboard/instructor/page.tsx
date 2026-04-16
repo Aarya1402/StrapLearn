@@ -2,7 +2,7 @@ import { requireRole, getCurrentJwt } from '@/lib/server-auth';
 import { getAllCoursesForDashboard, getMyCourses } from '@/lib/course';
 import { getCourseAnalytics } from '@/lib/analytics';
 import StatCard from '@/components/StatCard';
-import { Users, FileText, CheckCircle, Plus } from 'lucide-react';
+import { Users, FileText, CheckCircle2, Plus, ArrowRight, BarChart3, Edit3 } from 'lucide-react';
 
 export default async function InstructorDashboardPage() {
   const user = await requireRole('org_admin', 'instructor');
@@ -27,106 +27,105 @@ export default async function InstructorDashboardPage() {
   const totalEnrollments = coursesWithStats.reduce((acc, curr) => acc + (curr.stats?.enrollmentCount || 0), 0);
 
   return (
-    <div style={{ padding: '24px 0' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
+    <div className="space-y-10">
+      <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 style={{ fontSize: 28, fontWeight: 'bold', marginBottom: 4 }}>Instructor Dashboard</h1>
-          <p style={{ color: '#666' }}>
-            Welcome, <strong>{user.username}</strong> &bull; {user.organization?.name}
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">Instructor Dashboard</h1>
+          <p className="mt-1 text-muted-foreground text-lg">
+            Welcome back, <span className="font-semibold text-foreground">{user.username}</span>. You're teaching at <span className="text-brand-600 font-medium">{user.organization?.name}</span>.
           </p>
         </div>
         <a 
           href="/dashboard/courses/new" 
-          style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: 8, 
-            padding: '12px 24px', 
-            background: '#111', 
-            color: '#fff', 
-            textDecoration: 'none', 
-            borderRadius: 12,
-            fontWeight: 600
-          }}
+          className="flex items-center justify-center gap-2 rounded-2xl bg-brand-500 px-6 py-3.5 text-sm font-bold text-white shadow-xl shadow-brand-500/20 transition-all hover:bg-brand-600 hover:-translate-y-1 active:scale-[0.98]"
         >
-          <Plus size={18} />
-          Create Course
+          <Plus size={20} />
+          Create New Course
         </a>
       </div>
 
-      <div style={{ 
-        display: 'grid', 
-        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
-        gap: 24, 
-        marginBottom: 40 
-      }}>
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard 
-          label="Total Enrollments" 
+          label="Total Students" 
           value={totalEnrollments} 
-          icon={<Users size={20} />} 
+          icon={<Users size={24} />} 
           color="#3b82f6"
         />
         <StatCard 
-          label="Draft Courses" 
+          label="Draft Content" 
           value={drafts.length} 
-          icon={<FileText size={20} />} 
+          icon={<FileText size={24} />} 
           color="#f59e0b"
         />
         <StatCard 
-          label="Published Courses" 
+          label="Live Courses" 
           value={published.length} 
-          icon={<CheckCircle size={20} />} 
+          icon={<CheckCircle2 size={24} />} 
           color="#10b981"
         />
         <StatCard 
-          label="Total Courses" 
+          label="Global Catalog" 
           value={courses.length} 
-          icon={<Plus size={20} />} 
+          icon={<BarChart3 size={24} />} 
           color="#8b5cf6"
         />
       </div>
 
-      <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #eee', overflow: 'hidden' }}>
-        <div style={{ padding: '20px 24px', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between' }}>
-          <h2 style={{ fontSize: 18, fontWeight: 'bold' }}>My Courses</h2>
-          <div style={{ display: 'flex', gap: 12 }}>
-             <a href="/dashboard/courses" style={{ fontSize: 14, color: '#3b82f6', textDecoration: 'none' }}>View All</a>
+      <div className="rounded-3xl border border-border bg-card shadow-premium overflow-hidden">
+        <div className="flex items-center justify-between border-b border-border bg-muted/30 px-8 py-6">
+          <h2 className="text-xl font-bold tracking-tight">Active Curriculum</h2>
+          <div className="flex items-center gap-4">
+             <a href="/dashboard/courses" className="text-sm font-semibold text-brand-600 hover:text-brand-700 hover:underline flex items-center gap-1">
+               Full Management
+               <ArrowRight size={14} />
+             </a>
           </div>
         </div>
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+        
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
             <thead>
-              <tr style={{ background: '#f9fafb' }}>
-                <th style={{ padding: '12px 24px', fontSize: 13, fontWeight: 600, color: '#666' }}>Course Title</th>
-                <th style={{ padding: '12px 24px', fontSize: 13, fontWeight: 600, color: '#666' }}>Status</th>
-                <th style={{ padding: '12px 24px', fontSize: 13, fontWeight: 600, color: '#666' }}>Enrollments</th>
-                <th style={{ padding: '12px 24px', fontSize: 13, fontWeight: 600, color: '#666' }}>Completions</th>
-                <th style={{ padding: '12px 24px', fontSize: 13, fontWeight: 600, color: '#666', textAlign: 'right' }}>Actions</th>
+              <tr className="border-b border-border/50">
+                <th className="px-8 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">Course Details</th>
+                <th className="px-8 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">Status</th>
+                <th className="px-8 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground text-center">Enrollments</th>
+                <th className="px-8 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground text-center">Success Rate</th>
+                <th className="px-8 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground text-right">Actions</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-border/30">
               {coursesWithStats.map((course) => (
-                <tr key={course.documentId} style={{ borderBottom: '1px solid #eee' }}>
-                  <td style={{ padding: '16px 24px' }}>
-                    <div style={{ fontWeight: 600, color: '#111' }}>{course.title}</div>
-                    <div style={{ fontSize: 12, color: '#666' }}>{course.level}</div>
+                <tr key={course.documentId} className="group hover:bg-secondary/30 transition-colors">
+                  <td className="px-8 py-6">
+                    <div className="font-bold text-foreground leading-tight group-hover:text-brand-600 transition-colors">{course.title}</div>
+                    <div className="mt-1 text-xs font-medium text-muted-foreground uppercase tracking-wider">{course.level}</div>
                   </td>
-                  <td style={{ padding: '16px 24px' }}>
-                    <span style={{ 
-                      padding: '4px 10px', 
-                      borderRadius: 20, 
-                      fontSize: 11, 
-                      fontWeight: 600,
-                      background: course.publishedAt ? '#ecfdf5' : '#fff7ed',
-                      color: course.publishedAt ? '#059669' : '#d97706'
-                    }}>
-                      {course.publishedAt ? 'PUBLISHED' : 'DRAFT'}
+                  <td className="px-8 py-6">
+                    <span className={`
+                      inline-flex items-center rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-widest leading-none
+                      ${course.publishedAt ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20' : 'bg-amber-50 text-amber-600 dark:bg-amber-900/20'}
+                    `}>
+                      {course.publishedAt ? 'Published' : 'Draft'}
                     </span>
                   </td>
-                  <td style={{ padding: '16px 24px', fontWeight: 500 }}>{course.stats?.enrollmentCount || 0}</td>
-                  <td style={{ padding: '16px 24px', fontWeight: 500 }}>{course.stats?.completionCount || 0}</td>
-                  <td style={{ padding: '16px 24px', textAlign: 'right' }}>
-                    <a href={`/dashboard/courses/${course.documentId}`} style={{ color: '#3b82f6', textDecoration: 'none', fontSize: 14, fontWeight: 500 }}>
+                  <td className="px-8 py-6 text-center font-bold text-lg text-foreground/80">{course.stats?.enrollmentCount || 0}</td>
+                  <td className="px-8 py-6 text-center">
+                    <div className="flex flex-col items-center gap-1">
+                      <span className="font-bold text-foreground/80">{course.stats?.completionCount || 0}</span>
+                      <div className="w-12 h-1 bg-secondary rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-emerald-500 transition-all duration-500" 
+                          style={{ width: `${Math.min(100, ((course.stats?.completionCount || 0) / (course.stats?.enrollmentCount || 1)) * 100)}%` }} 
+                        />
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-8 py-6 text-right">
+                    <a 
+                      href={`/dashboard/courses/${course.documentId}`} 
+                      className="inline-flex items-center gap-2 rounded-xl bg-secondary px-4 py-2 text-sm font-bold text-foreground transition-all hover:bg-brand-500 hover:text-white"
+                    >
+                      <Edit3 size={14} />
                       Edit
                     </a>
                   </td>
@@ -139,3 +138,4 @@ export default async function InstructorDashboardPage() {
     </div>
   );
 }
+

@@ -7,9 +7,10 @@
 
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { login, register } from '@/lib/auth';
+import { login, register, updateUser } from '@/lib/auth';
 import type { LoginPayload, RegisterPayload } from '@/lib/types/auth';
 import { getDashboardPath } from '@/lib/server-auth';
+import { revalidatePath } from 'next/cache';
 
 function setCookies(cookieStore: any, jwt: string, roleType: string) {
     cookieStore.set('strapi_jwt', jwt, {
@@ -45,6 +46,13 @@ export async function registerAction(payload: RegisterPayload) {
     const cookieStore = await cookies();
     setCookies(cookieStore, jwt, user.role_type);
     redirect(getDashboardPath(user.role_type));
+}
+
+// ─── Profile Update Action ───────────────────────────────────────────────────
+
+export async function updateProfileAction(id: number, jwt: string, data: any) {
+    await updateUser(id, jwt, data);
+    revalidatePath('/dashboard/profile');
 }
 
 // ─── Logout Action ───────────────────────────────────────────────────────────

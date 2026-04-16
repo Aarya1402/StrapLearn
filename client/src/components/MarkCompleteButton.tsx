@@ -2,6 +2,7 @@
 
 import { useTransition } from 'react';
 import { markLessonCompleteAction } from '@/actions/progress.actions';
+import { CheckCircle2, Loader2, Circle } from 'lucide-react';
 
 interface Props {
   lessonId: string;
@@ -33,8 +34,9 @@ export default function MarkCompleteButton({
 
   if (isCompleted) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#10b981', fontWeight: 'bold' }}>
-        <span>✅ Completed</span>
+      <div className="flex items-center gap-2 rounded-xl bg-emerald-50 px-4 py-2.5 text-sm font-bold text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400">
+        <CheckCircle2 size={18} />
+        <span>Completed</span>
       </div>
     );
   }
@@ -43,18 +45,27 @@ export default function MarkCompleteButton({
     <button
       onClick={handleMarkComplete}
       disabled={isPending}
-      style={{
-        padding: '10px 20px',
-        background: isPending ? '#ccc' : '#10b981',
-        color: '#fff',
-        border: 'none',
-        borderRadius: 6,
-        cursor: isPending ? 'not-allowed' : 'pointer',
-        fontSize: 14,
-        fontWeight: 'bold',
-      }}
+      className={`
+        group flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold transition-all active:scale-[0.98]
+        ${isPending 
+          ? 'bg-secondary text-muted-foreground cursor-not-allowed' 
+          : 'bg-emerald-600 text-white hover:bg-emerald-700 hover:shadow-lg shadow-emerald-600/20'
+        }
+      `}
     >
-      {isPending ? 'Updating...' : 'Mark as Complete'}
+      {isPending ? (
+        <>
+          <Loader2 size={18} className="animate-spin" />
+          <span>Updating...</span>
+        </>
+      ) : (
+        <>
+          <Circle size={18} className="group-hover:hidden" />
+          <CheckCircle2 size={18} className="hidden group-hover:block" />
+          <span>Mark as Complete</span>
+        </>
+      )}
     </button>
   );
 }
+

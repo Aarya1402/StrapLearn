@@ -2,7 +2,7 @@ import { getMyEnrollments, getCourseProgress } from '@/lib/course';
 import { getCurrentJwt, requireAuth } from '@/lib/server-auth';
 import StatCard from '@/components/StatCard';
 import CourseProgressBar from '@/components/CourseProgressBar';
-import { BookOpen, CheckCircle, GraduationCap, Clock } from 'lucide-react';
+import { BookOpen, CheckCircle, GraduationCap, Building2, ArrowRight } from 'lucide-react';
 
 export default async function StudentDashboardPage() {
   const user = await requireAuth();
@@ -24,27 +24,26 @@ export default async function StudentDashboardPage() {
   const inProgressCount = enrollments.length - completedCount;
 
   return (
-    <div style={{ padding: '24px 0' }}>
-      <div style={{ marginBottom: 32 }}>
-        <h1 style={{ fontSize: 28, fontWeight: 'bold', marginBottom: 8, color: '#111' }}>
-          Welcome back, {user.username}! 👋
-        </h1>
-        <p style={{ color: '#666', fontSize: 16 }}>
-          Track your learning journey and pick up where you left off.
-        </p>
-      </div>
+    <div className="space-y-10">
+      {/* Welcome Header */}
+      <section className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+        <div className="space-y-1">
+          <h1 className="text-3xl font-bold tracking-tight">
+            Welcome back, {user.username}! 👋
+          </h1>
+          <p className="text-muted-foreground">
+            Track your learning journey and pick up where you left off.
+          </p>
+        </div>
+      </section>
       
-      <div style={{ 
-        display: 'grid', 
-        gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', 
-        gap: 24, 
-        marginBottom: 40 
-      }}>
+      {/* Stats Overview */}
+      <section className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard 
           label="Active Courses" 
           value={inProgressCount} 
           icon={<BookOpen size={20} />} 
-          color="#3b82f6"
+          color="var(--color-brand-500)"
         />
         <StatCard 
           label="Completed" 
@@ -61,46 +60,56 @@ export default async function StudentDashboardPage() {
         <StatCard 
           label="Organization" 
           value={user.organization?.name ?? 'Personal'} 
-          icon={<Clock size={20} />} 
+          icon={<Building2 size={20} />} 
           color="#8b5cf6"
         />
-      </div>
+      </section>
 
-      <div style={{ marginBottom: 40 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-          <h2 style={{ fontSize: 20, fontWeight: 'bold' }}>Your Learning Progress</h2>
-          <a href="/dashboard/student/courses" style={{ color: '#3b82f6', textDecoration: 'none', fontWeight: 500, fontSize: 14 }}>
+      {/* Main Learning Section */}
+      <section className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-bold tracking-tight">Your Learning Progress</h2>
+          <a 
+            href="/dashboard/student/courses" 
+            className="group flex items-center gap-1.5 text-sm font-semibold text-brand-600 transition-colors hover:text-brand-700"
+          >
             View All Courses
+            <ArrowRight size={14} className="transition-transform group-hover:translate-x-0.5" />
           </a>
         </div>
         
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: 24 }}>
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-2">
           {enrollmentsWithProgress.length > 0 ? (
             enrollmentsWithProgress.slice(0, 4).map((enrollment: any) => (
-              <div key={enrollment.documentId} style={{ 
-                padding: 24, 
-                border: '1px solid #eee', 
-                borderRadius: 16, 
-                background: '#fff',
-                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-              }}>
-                <h3 style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 16 }}>{enrollment.course.title}</h3>
-                <CourseProgressBar percentage={enrollment.progress.percentage} />
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 16 }}>
-                  <span style={{ fontSize: 12, color: '#666' }}>
+              <div 
+                key={enrollment.documentId} 
+                className="group flex flex-col justify-between rounded-2xl border border-border bg-card p-6 shadow-premium transition-all duration-300 hover:-translate-y-1 hover:shadow-premium-hover"
+              >
+                <div className="mb-6">
+                  <div className="mb-4 flex items-center justify-between">
+                    <span className="rounded-full bg-brand-50 px-2.5 py-0.5 text-xs font-bold text-brand-600 dark:bg-brand-900/30 dark:text-brand-400">
+                      Ongoing
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      Last active: Today
+                    </span>
+                  </div>
+                  <h3 className="mb-2 text-lg font-bold leading-tight group-hover:text-brand-600 transition-colors">
+                    {enrollment.course.title}
+                  </h3>
+                  <p className="mb-6 line-clamp-2 text-sm text-muted-foreground">
+                    Master the fundamentals of {enrollment.course.title.split(' ')[0]} with hands-on exercises.
+                  </p>
+                  <CourseProgressBar percentage={enrollment.progress.percentage} />
+                </div>
+
+                <div className="flex items-center justify-between pt-4 border-t border-border/50">
+                  <span className="text-xs font-medium text-muted-foreground">
                     {enrollment.progress.completedLessons} of {enrollment.progress.totalLessons} lessons
                   </span>
                   <a 
                     href={`/courses/${enrollment.course.slug}`} 
-                    style={{ 
-                      padding: '8px 16px', 
-                      background: '#111', 
-                      color: '#fff', 
-                      textDecoration: 'none', 
-                      borderRadius: 8, 
-                      fontSize: 13,
-                      fontWeight: 600
-                    }}
+                    className="inline-flex items-center justify-center rounded-xl bg-foreground px-5 py-2.5 text-sm font-bold text-background transition-all hover:bg-foreground/90 active:scale-95"
                   >
                     Continue
                   </a>
@@ -108,13 +117,25 @@ export default async function StudentDashboardPage() {
               </div>
             ))
           ) : (
-            <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '40px 0', background: '#f9f9f9', borderRadius: 12 }}>
-              <p style={{ color: '#666' }}>You haven't enrolled in any courses yet.</p>
-              <a href="/courses" style={{ color: '#3b82f6', fontWeight: 'bold', display: 'inline-block', marginTop: 12 }}>Browse Courses</a>
+            <div className="col-span-full flex flex-col items-center justify-center rounded-3xl border border-dashed border-border bg-muted/30 py-20 text-center">
+              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-secondary text-muted-foreground">
+                <BookOpen size={32} />
+              </div>
+              <h3 className="mb-1 text-lg font-semibold">No active enrollments</h3>
+              <p className="mb-8 max-w-xs text-sm text-muted-foreground">
+                You haven't enrolled in any courses yet. Start your learning journey today.
+              </p>
+              <a 
+                href="/courses" 
+                className="inline-flex items-center justify-center rounded-xl bg-brand-500 px-6 py-3 text-sm font-bold text-white transition-all hover:bg-brand-600 hover:shadow-lg active:scale-95 shadow-brand-500/20"
+              >
+                Browse Catalog
+              </a>
             </div>
           )}
         </div>
-      </div>
+      </section>
     </div>
   );
 }
+

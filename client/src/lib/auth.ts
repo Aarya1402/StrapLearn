@@ -86,6 +86,15 @@ export async function getAllUsers(jwt: string): Promise<StrapiUser[]> {
     return res.json();
 }
 
+export async function getOrgUsers(jwt: string, organizationId: string): Promise<StrapiUser[]> {
+    const res = await fetch(`${STRAPI_URL}/api/users?populate=organization&filters[organization][id][$eq]=${organizationId}`, {
+        headers: { Authorization: `Bearer ${jwt}` },
+        cache: 'no-store',
+    });
+    if (!res.ok) throw new Error('Failed to fetch organization users');
+    return res.json();
+}
+
 // ─── Role helpers ─────────────────────────────────────────────────────────────
 
 export function getDashboardPath(roleType: string): string {
@@ -116,4 +125,21 @@ export function isInstructor(roleType?: string) {
 
 export function isStudent(roleType?: string) {
     return roleType === 'student';
+}
+export async function updateUser(id: number, jwt: string, data: Partial<StrapiUser> & { password?: string }): Promise<StrapiUser> {
+    const res = await fetch(`${STRAPI_URL}/api/users/${id}`, {
+        method: 'PUT',
+        headers: { 
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${jwt}` 
+        },
+        body: JSON.stringify(data),
+    });
+
+    if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err?.error?.message || 'Update failed');
+    }
+
+    return res.json();
 }

@@ -4,21 +4,21 @@ interface Props {
 
 export default function CourseProgressBar({ percentage }: Props) {
   return (
-    <div style={{ width: '100%', marginBottom: 20 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-        <span style={{ fontSize: 13, color: '#666', fontWeight: 'bold' }}>Your Progress</span>
-        <span style={{ fontSize: 13, color: '#666', fontWeight: 'bold' }}>{percentage}%</span>
+    <div className="w-full">
+      <div className="mb-2 flex items-center justify-between">
+        <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Course Progress</span>
+        <span className="text-sm font-bold text-foreground">{percentage}%</span>
       </div>
-      <div style={{ width: '100%', height: 8, background: '#e5e7eb', borderRadius: 4, overflow: 'hidden' }}>
+      <div className="h-2.5 w-full overflow-hidden rounded-full bg-secondary">
         <div
+          className="h-full rounded-full bg-brand-500 transition-all duration-500 ease-out"
           style={{
             width: `${percentage}%`,
-            height: '100%',
-            background: '#3b82f6',
-            transition: 'width 0.3s ease',
+            backgroundImage: 'linear-gradient(90deg, var(--color-brand-400), var(--color-brand-600))',
           }}
         />
       </div>
     </div>
   );
 }
+

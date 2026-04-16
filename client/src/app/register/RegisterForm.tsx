@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { registerAction } from '@/actions/auth.actions';
 import type { Organization } from '@/lib/organization';
+import { User, Mail, Lock, ShieldCheck, Building2, UserPlus, ArrowRight } from 'lucide-react';
 
 interface Props {
   organizations: Organization[];
@@ -10,6 +11,10 @@ interface Props {
 
 export default function RegisterForm({ organizations }: Props) {
   const [role, setRole] = useState('student');
+
+  const inputClasses = "flex h-11 w-full rounded-xl border border-input bg-background px-10 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/20 focus-visible:border-brand-500 transition-all";
+  const iconClasses = "absolute left-3 top-3 h-4 w-4 text-muted-foreground";
+  const labelClasses = "text-sm font-medium leading-none mb-2 block";
 
   return (
     <form
@@ -22,62 +27,79 @@ export default function RegisterForm({ organizations }: Props) {
           organization: formData.get('organization') as string,
         });
       }}
-      style={{ display: 'flex', flexDirection: 'column', gap: 12 }}
+      className="grid grid-cols-1 gap-6 sm:grid-cols-2"
     >
-      <label>
-        Username
-        <input name="username" type="text" required style={inputStyle} />
-      </label>
-      <label>
-        Email
-        <input name="email" type="email" required style={inputStyle} />
-      </label>
-      <label>
-        Password
-        <input name="password" type="password" required minLength={6} style={inputStyle} />
-      </label>
-      <label>
-        Role
-        <select 
-          name="role_type" 
-          value={role}
-          onChange={(e) => setRole(e.target.value)}
-          style={inputStyle}
-        >
-          <option value="student">Student</option>
-          <option value="instructor">Instructor</option>
-          <option value="org_admin">Org Admin</option>
-          <option value="super_admin">Super Admin</option>
-        </select>
-      </label>
+      <div className="space-y-2">
+        <label className={labelClasses} htmlFor="username">Username</label>
+        <div className="relative">
+          <User className={iconClasses} />
+          <input id="username" name="username" type="text" placeholder="johndoe" required className={inputClasses} />
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <label className={labelClasses} htmlFor="email">Email address</label>
+        <div className="relative">
+          <Mail className={iconClasses} />
+          <input id="email" name="email" type="email" placeholder="john@example.com" required className={inputClasses} />
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <label className={labelClasses} htmlFor="password">Password</label>
+        <div className="relative">
+          <Lock className={iconClasses} />
+          <input id="password" name="password" type="password" placeholder="••••••••" required minLength={6} className={inputClasses} />
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <label className={labelClasses} htmlFor="role_type">I am a...</label>
+        <div className="relative">
+          <ShieldCheck className={iconClasses} />
+          <select 
+            id="role_type"
+            name="role_type" 
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
+            className={`${inputClasses} appearance-none`}
+          >
+            <option value="student">Student</option>
+            <option value="instructor">Instructor</option>
+            <option value="org_admin">Org Admin</option>
+            <option value="super_admin">Super Admin</option>
+          </select>
+        </div>
+      </div>
 
       {role !== 'super_admin' && (
-        <label>
-          Organization
-          <select name="organization" required style={inputStyle}>
-            <option value="">Select your organization...</option>
-            {organizations.map((org) => (
-              <option key={org.documentId} value={org.documentId}>
-                {org.name}
-              </option>
-            ))}
-          </select>
-        </label>
+        <div className="space-y-2 sm:col-span-2">
+          <label className={labelClasses} htmlFor="organization">Organization</label>
+          <div className="relative">
+            <Building2 className={iconClasses} />
+            <select id="organization" name="organization" required className={`${inputClasses} appearance-none`}>
+              <option value="">Select your organization...</option>
+              {organizations.map((org) => (
+                <option key={org.documentId} value={org.documentId}>
+                  {org.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
       )}
 
-      <button type="submit" style={{ padding: '12px', cursor: 'pointer', background: '#000', color: '#fff', border: 'none', borderRadius: 4, fontWeight: 'bold', marginTop: 8 }}>
-        Create Account
-      </button>
+      <div className="pt-2 sm:col-span-2">
+        <button
+          type="submit"
+          className="group flex w-full items-center justify-center gap-2 rounded-xl bg-brand-500 px-4 py-3 text-sm font-bold text-white transition-all hover:bg-brand-600 hover:shadow-lg active:scale-[0.98] shadow-brand-500/20"
+        >
+          <UserPlus size={18} />
+          Create Account
+          <ArrowRight size={16} className="ml-1 transition-transform group-hover:translate-x-0.5" />
+        </button>
+      </div>
     </form>
   );
 }
 
-const inputStyle = {
-  display: 'block',
-  width: '100%',
-  padding: '10px',
-  marginTop: '4px',
-  border: '1px solid #ddd',
-  borderRadius: 4,
-  fontFamily: 'inherit'
-};

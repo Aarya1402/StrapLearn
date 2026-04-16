@@ -1,6 +1,7 @@
 import { getMyEnrollments, getCourseProgress, getQuizAttempts } from '@/lib/course';
 import { getCurrentJwt, requireAuth } from '@/lib/server-auth';
 import CourseProgressBar from '@/components/CourseProgressBar';
+import { BookOpen, Award, CheckCircle2, ArrowRight, BarChart3 } from 'lucide-react';
 
 export default async function ProgressPage() {
   const user = await requireAuth();
@@ -40,15 +41,24 @@ export default async function ProgressPage() {
   );
 
   return (
-    <div style={{ fontFamily: 'monospace' }}>
-      <h1 style={{ marginBottom: 24 }}>Learning Progress</h1>
+    <div className="space-y-10">
+      <div className="flex flex-col gap-2">
+        <h1 className="text-3xl font-bold tracking-tight text-foreground">Learning Progress</h1>
+        <p className="text-muted-foreground text-lg">Detailed breakdown of your academic achievements and milestones.</p>
+      </div>
       
       {enrollmentsWithProgress.length === 0 ? (
-        <div style={{ padding: 40, textAlign: 'center', background: '#f9fafb', borderRadius: 8 }}>
-          <p style={{ color: '#666' }}>No active enrollments found.</p>
+        <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-border bg-muted/30 py-24 text-center">
+          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-secondary text-muted-foreground">
+            <BarChart3 size={32} />
+          </div>
+          <h3 className="text-xl font-bold mb-2">No progress data yet</h3>
+          <p className="max-w-xs text-muted-foreground mb-8">
+            Start learning a course to see your detailed progress here.
+          </p>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+        <div className="grid gap-6">
           {enrollmentsWithProgress.map((item: any) => {
             const course = item.course;
             if (!course) return null;
@@ -57,58 +67,59 @@ export default async function ProgressPage() {
             return (
               <div
                 key={item.documentId}
-                style={{
-                  padding: 20,
-                  border: '1px solid #eee',
-                  borderRadius: 12,
-                  background: '#fff',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 16
-                }}
+                className="group relative overflow-hidden rounded-3xl border border-border bg-card p-8 shadow-premium transition-all duration-300 hover:shadow-premium-hover hover:-translate-y-1"
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <div>
-                    <h2 style={{ margin: 0, fontSize: 20 }}>{course.title}</h2>
-                    <p style={{ fontSize: 13, color: '#666', marginTop: 4 }}>
-                      Enrolled on {new Date(item.enrolledAt).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <a 
-                    href={`/courses/${course.slug}`}
-                    style={{ 
-                      padding: '6px 16px', 
-                      background: '#000', 
-                      color: '#fff', 
-                      textDecoration: 'none', 
-                      borderRadius: 6,
-                      fontSize: 14,
-                      fontWeight: 'bold'
-                    }}
-                  >
-                    {item.isCompleted ? 'Review' : 'Continue'}
-                  </a>
-                </div>
-
-                <div style={{ maxWidth: 500 }}>
-                  <CourseProgressBar percentage={progress.percentage} />
-                </div>
-
-                <div style={{ display: 'flex', gap: 24, fontSize: 13, color: '#666' }}>
-                  <span>
-                    <strong>{progress.completedLessons}</strong> of <strong>{progress.totalLessons}</strong> lessons completed
-                  </span>
-                  {item.isCompleted && (
-                    item.quizId ? (
-                      <a href={`/test/quizzes/${item.quizId}/attempts`} style={{ color: '#10b981', fontWeight: 'bold', textDecoration: 'none' }}>
-                        🟢 Highest Score: {item.highestScore}%
+                <div className="flex flex-col gap-8 lg:flex-row lg:items-center">
+                  <div className="flex-1 space-y-4">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <h2 className="text-2xl font-bold tracking-tight group-hover:text-brand-600 transition-colors">
+                          {course.title}
+                        </h2>
+                        <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
+                          <CheckCircle2 size={14} className={item.isCompleted ? 'text-emerald-500' : 'text-amber-500'} />
+                          {item.isCompleted ? 'Finished' : 'In Progress'}
+                          <span>•</span>
+                          <span>Enrolled {new Date(item.enrolledAt).toLocaleDateString()}</span>
+                        </div>
+                      </div>
+                      
+                      <a 
+                        href={`/courses/${course.slug}`}
+                        className="inline-flex items-center justify-center gap-2 rounded-xl bg-foreground px-6 py-2.5 text-sm font-bold text-background transition-all hover:bg-foreground/90 active:scale-95 shadow-lg shadow-foreground/5"
+                      >
+                        {item.isCompleted ? 'Review' : 'Continue'}
+                        <ArrowRight size={16} />
                       </a>
-                    ) : (
-                      <span style={{ color: '#10b981', fontWeight: 'bold' }}>
-                        🟢 Course Completed
-                      </span>
-                    )
-                  )}
+                    </div>
+
+                    <div className="max-w-2xl">
+                      <CourseProgressBar percentage={progress.percentage} />
+                      <div className="mt-4 flex flex-wrap items-center gap-6 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-2">
+                          <BookOpen size={16} className="text-brand-500" />
+                          <span>
+                            <strong className="text-foreground">{progress.completedLessons}</strong> of <strong className="text-foreground">{progress.totalLessons}</strong> lessons
+                          </span>
+                        </div>
+                        
+                        {item.isCompleted && (
+                          <div className="flex items-center gap-2">
+                            <Award size={16} className="text-emerald-500" />
+                            {item.quizId ? (
+                              <a href={`/test/quizzes/${item.quizId}/attempts`} className="font-bold text-emerald-600 hover:text-emerald-700 hover:underline">
+                                Highest Score: {item.highestScore}%
+                              </a>
+                            ) : (
+                              <span className="font-bold text-emerald-600">
+                                Course Completed
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             );
@@ -118,3 +129,4 @@ export default async function ProgressPage() {
     </div>
   );
 }
+

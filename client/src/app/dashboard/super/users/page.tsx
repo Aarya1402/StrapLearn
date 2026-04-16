@@ -1,6 +1,6 @@
 import { requireRole, getCurrentJwt } from '@/lib/server-auth';
 import { getAllUsers } from '@/lib/auth';
-import { Users, Mail, UserCheck, Shield, Zap } from 'lucide-react';
+import { Users, Mail, UserCheck, Shield, Zap, Search, Filter, MoreVertical } from 'lucide-react';
 
 export default async function SuperUsersPage() {
   await requireRole('super_admin');
@@ -9,126 +9,98 @@ export default async function SuperUsersPage() {
   const users = await getAllUsers(jwt);
 
   return (
-    <div style={{ padding: '0 0 40px 0' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
-        <div>
-          <h1 style={{ fontSize: 28, fontWeight: 'bold', marginBottom: 4 }}>Global Users</h1>
-          <p style={{ color: '#666' }}>Directory of all users across all organizations.</p>
+    <div className="space-y-8">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-1">
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">Global User Directory</h1>
+          <p className="text-muted-foreground">Manage and audit all users across the entire StrapLearn platform.</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
+            <input 
+              type="text" 
+              placeholder="Search users..." 
+              className="h-10 w-full rounded-xl border border-input bg-background pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 md:w-64"
+            />
+          </div>
+          <button className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-card text-muted-foreground hover:bg-secondary">
+            <Filter size={18} />
+          </button>
         </div>
       </div>
 
-      <div style={{ 
-        background: '#fff', 
-        borderRadius: 16, 
-        border: '1px solid #eee', 
-        overflow: 'hidden' 
-      }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-          <thead>
-            <tr style={{ borderBottom: '1px solid #eee', background: '#fafafa' }}>
-              <th style={thStyle}>User</th>
-              <th style={thStyle}>Role</th>
-              <th style={thStyle}>Organization</th>
-              <th style={thStyle}>Email</th>
-              <th style={thStyle}>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.map((user) => (
-              <tr key={user.id} style={{ borderBottom: '1px solid #f4f4f5' }}>
-                <td style={tdStyle}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <div style={{ 
-                      width: 40, 
-                      height: 40, 
-                      background: '#f4f4f5', 
-                      borderRadius: '50%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
-                    }}>
-                      <Users size={20} color="#666" />
-                    </div>
-                    <div>
-                      <div style={{ fontWeight: 600 }}>{user.username}</div>
-                      <div style={{ fontSize: 12, color: '#999' }}>ID: {user.id}</div>
-                    </div>
-                  </div>
-                </td>
-                <td style={tdStyle}>
-                  <span style={{ 
-                    display: 'inline-flex', 
-                    alignItems: 'center', 
-                    gap: 6, 
-                    fontSize: 12, 
-                    fontWeight: 600, 
-                    color: getRoleColor(user.role_type),
-                    textTransform: 'capitalize'
-                  }}>
-                    {user.role_type === 'super_admin' ? <Zap size={14} /> : <Shield size={14} />}
-                    {user.role_type.replace('_', ' ')}
-                  </span>
-                </td>
-                <td style={tdStyle}>
-                  {user.organization ? (
-                    <div style={{ fontSize: 14 }}>
-                      <div style={{ fontWeight: 500 }}>{user.organization.name}</div>
-                      <div style={{ fontSize: 12, color: '#999' }}>{user.organization.slug}</div>
-                    </div>
-                  ) : (
-                    <span style={{ fontSize: 13, color: '#aaa', fontStyle: 'italic' }}>Platform Global</span>
-                  )}
-                </td>
-                <td style={tdStyle}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, color: '#444' }}>
-                    <Mail size={14} color="#999" />
-                    {user.email}
-                  </div>
-                </td>
-                <td style={tdStyle}>
-                   <span style={{ 
-                    display: 'inline-flex', 
-                    alignItems: 'center', 
-                    gap: 6, 
-                    fontSize: 11, 
-                    fontWeight: 700, 
-                    color: '#10b981',
-                    background: '#ecfdf5',
-                    padding: '2px 8px',
-                    borderRadius: 4,
-                    textTransform: 'uppercase'
-                  }}>
-                    <UserCheck size={12} /> Verified
-                  </span>
-                </td>
+      <div className="rounded-3xl border border-border bg-card shadow-premium overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="border-b border-border bg-muted/30">
+                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">User Profile</th>
+                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">System Role</th>
+                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">Organization</th>
+                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">Contact</th>
+                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">Verification</th>
+                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground text-right">Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-border/50">
+              {users.map((user) => (
+                <tr key={user.id} className="group hover:bg-secondary/30 transition-colors">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-secondary text-brand-600 transition-transform group-hover:scale-110">
+                        <Users size={18} />
+                      </div>
+                      <div>
+                        <div className="font-bold text-foreground">{user.username}</div>
+                        <div className="text-[10px] font-mono text-muted-foreground uppercase opacity-60">ID: {String(user.id).substring(0, 8)}...</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`
+                      inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold uppercase tracking-wider
+                      ${user.role_type === 'super_admin' ? 'bg-red-50 text-red-600 dark:bg-red-900/20' : 
+                        user.role_type === 'org_admin' ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-900/20' : 
+                        'bg-blue-50 text-blue-600 dark:bg-blue-900/20'}
+                    `}>
+                      {user.role_type === 'super_admin' ? <Zap size={12} /> : <Shield size={12} />}
+                      {user.role_type.replace('_', ' ')}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {user.organization ? (
+                      <div className="space-y-0.5">
+                        <div className="text-sm font-bold text-foreground">{user.organization.name}</div>
+                        <div className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">{user.organization.slug}</div>
+                      </div>
+                    ) : (
+                      <span className="text-xs font-medium italic text-muted-foreground opacity-50">Global Straplearn</span>
+                    )}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground group-hover:text-foreground transition-colors">
+                      <Mail size={14} className="opacity-40" />
+                      {user.email}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 px-2 py-0.5 rounded-md border border-emerald-100 dark:border-emerald-800">
+                      <UserCheck size={12} /> Verified
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-right whitespace-nowrap">
+                    <button className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-secondary hover:text-foreground">
+                      <MoreVertical size={16} />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
 }
 
-const getRoleColor = (role: string) => {
-  switch (role) {
-    case 'super_admin': return '#ef4444';
-    case 'org_admin': return '#8b5cf6';
-    case 'instructor': return '#3b82f6';
-    default: return '#666';
-  }
-};
-
-const thStyle: React.CSSProperties = {
-  padding: '16px 24px',
-  fontSize: 13,
-  fontWeight: 600,
-  color: '#666',
-  textTransform: 'uppercase',
-  letterSpacing: '0.5px'
-};
-
-const tdStyle: React.CSSProperties = {
-  padding: '16px 24px',
-  verticalAlign: 'middle'
-};

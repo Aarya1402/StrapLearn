@@ -1,15 +1,19 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Outfit, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
+import { ThemeProvider } from "@/components/ThemeProvider";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+import { getCurrentUser } from "@/lib/server-auth";
+import { ShellSwitcher } from "@/components/ShellSwitcher";
+
+const outfit = Outfit({
+  variable: "--font-outfit",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const jakarta = Plus_Jakarta_Sans({
+  variable: "--font-jakarta",
   subsets: ["latin"],
 });
 
@@ -18,22 +22,32 @@ export const metadata: Metadata = {
   description: "Multi-tenant Learning Management System for Corporate Training",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const user = await getCurrentUser();
+
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${outfit.variable} ${jakarta.variable} antialiased`}
       >
-        {/* MODULE 3 — Auth context available throughout the entire app */}
-        <AuthProvider>
-          {children}
-        </AuthProvider>
+        <ThemeProvider
+          attribute="data-theme"
+          defaultTheme="system"
+          enableSystem
+          themes={["light", "dark", "boost"]}
+        >
+          {/* MODULE 3 — Auth context available throughout the entire app */}
+          <AuthProvider>
+            <ShellSwitcher user={user ? { username: user.username, role_type: user.role_type } : null}>
+              {children}
+            </ShellSwitcher>
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
 }
-
