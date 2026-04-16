@@ -18,6 +18,7 @@ import {
   LayoutGrid,
   ChevronRight,
   Shield,
+  Building,
   ArrowRight
 } from 'lucide-react';
 import { logoutAction } from '@/actions/auth.actions';
@@ -52,14 +53,15 @@ export function Sidebar({ user }: SidebarProps) {
           { label: 'Control Center', href: '/dashboard/admin', icon: <LayoutGrid size={20} /> },
           { label: 'User Directory', href: '/dashboard/admin/users', icon: <Users size={20} /> },
           { label: 'Curriculum Catalog', href: '/dashboard/courses', icon: <BookMarked size={20} /> },
-          { label: 'Identity Settings', href: '/dashboard/admin/settings', icon: <Settings size={20} /> },
+          { label: 'Organization Identity', href: '/dashboard/admin/settings', icon: <Building size={20} /> },
+          { label: 'Account Security', href: '/dashboard/profile', icon: <Settings size={20} /> },
         ];
       case 'instructor':
         return [
           { label: 'Performance', href: '/dashboard/instructor', icon: <PieChart size={20} /> },
           { label: 'My Curriculum', href: '/dashboard/courses?filter=my', icon: <BookMarked size={20} /> },
           { label: 'Lesson Vault', href: '/dashboard/instructor/lessons', icon: <BookOpen size={20} /> },
-          { label: 'Profile Settings', href: '/dashboard/instructor/settings', icon: <Settings size={20} /> },
+          { label: 'Account Security', href: '/dashboard/profile', icon: <Settings size={20} /> },
         ];
       case 'student':
         return [
@@ -67,7 +69,7 @@ export function Sidebar({ user }: SidebarProps) {
           { label: 'Enrolled Courses', href: '/dashboard/student/courses', icon: <BookOpen size={20} /> },
           { label: 'Learning Velocity', href: '/dashboard/student/progress', icon: <TrendingUp size={20} /> },
           { label: 'Global Catalog', href: '/courses', icon: <Compass size={20} /> },
-          { label: 'Account Profile', href: '/dashboard/student/settings', icon: <Settings size={20} /> },
+          { label: 'Account Security', href: '/dashboard/profile', icon: <Settings size={20} /> },
         ];
       default:
         return [];

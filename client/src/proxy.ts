@@ -52,12 +52,17 @@ export function proxy(request: NextRequest) {
                 '/dashboard/instructor',
                 '/dashboard/courses',   // course & lesson management (Module 5+6)
                 '/dashboard/student',
+                '/dashboard/profile',
             ],
             instructor: [
                 '/dashboard/instructor',
                 '/dashboard/courses',   // create courses and lessons (Module 5+6)
+                '/dashboard/profile',
             ],
-            student: ['/dashboard/student'],
+            student: [
+                '/dashboard/student',
+                '/dashboard/profile',
+            ],
         };
         const allowed = ROLE_ALLOWED[roleType] ?? [];
         const canAccess = allowed.some((p) => pathname.startsWith(p));
