@@ -137,6 +137,29 @@ export default factories.createCoreController('api::quiz.quiz', ({ strapi }) => 
             }
         });
 
+        // Trigger Notification for Instructor
+        try {
+            const quizWithInstructor = await strapi.documents('api::quiz.quiz').findOne({
+                documentId,
+                populate: ['course', 'course.instructor'],
+            }) as any;
+
+            if (quizWithInstructor?.course?.instructor) {
+                await strapi.service('api::notification.notification').create({
+                    data: {
+                        user: quizWithInstructor.course.instructor.id,
+                        type: 'quiz',
+                        title: 'Quiz Submitted',
+                        message: `${user.username} submitted "${quiz.title}" with a score of ${percentage}%.`,
+                        link: `/dashboard/courses/${quizWithInstructor.course.documentId}`,
+                        isRead: false,
+                    },
+                });
+            }
+        } catch (error) {
+            console.error('Failed to send quiz notification:', error);
+        }
+
         return {
             score: percentage,
             isPassed,

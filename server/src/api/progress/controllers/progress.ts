@@ -75,13 +75,26 @@ export default factories.createCoreController('api::progress.progress', ({ strap
                 where: {
                     user: { id: user.id },
                     course: { documentId: courseId }
-                }
+                },
+                populate: ['course'] // Ensure course is populated to get the title
             });
 
             if (enrollment && !enrollment.isCompleted) {
                 await strapi.db.query('api::enrollment.enrollment').update({
                     where: { id: enrollment.id },
                     data: { isCompleted: true, completedAt: new Date() },
+                });
+
+                // Create notification for the student
+                await strapi.service('api::notification.notification').create({
+                    data: {
+                        user: user.id,
+                        type: 'completion',
+                        title: 'Course Completed! 🎓',
+                        message: `Congratulations! You have successfully completed "${enrollment.course.title}".`,
+                        link: `/dashboard/student/courses`,
+                        isRead: false,
+                    },
                 });
             }
         }

@@ -1,4 +1,5 @@
 import { factories } from '@strapi/strapi';
+import fs from 'node:fs';
 
 export default factories.createCoreController('api::course.course', ({ strapi }) => ({
     /**
@@ -16,7 +17,71 @@ export default factories.createCoreController('api::course.course', ({ strapi })
             return ctx.unauthorized('You must be logged in to create a course.');
         }
 
+        const DEBUG_LOG_PATHS = [
+            // Intended debug log path (may be unwritable depending on permissions)
+            '/home/aarya/Internship_Projects/4_starpLearn/.cursor/debug-78d289.log',
+            // Fallback: always-writable under repo
+            '/home/aarya/Internship_Projects/4_starpLearn/server/debug-78d289.log',
+        ];
+        const SERVER_ENDPOINT =
+            'http://127.0.0.1:7585/ingest/4afa9980-6400-4623-bd5a-eb1f6c49f197';
+
+        const debugPost = (payload: any) => {
+            // Best-effort local NDJSON so we have runtime evidence even if ingest is down.
+            try {
+                const line = JSON.stringify(payload) + '\n';
+                for (const p of DEBUG_LOG_PATHS) {
+                    try {
+                        fs.appendFileSync(p, line, { encoding: 'utf8' });
+                    } catch {
+                        // swallow per-path failures (e.g. permissions)
+                    }
+                }
+            } catch {
+                // never break request handling
+            }
+
+            // Keep ingest posting as well (primary channel for the debug system).
+            try {
+                fetch(SERVER_ENDPOINT, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Debug-Session-Id': '78d289',
+                    },
+                    body: JSON.stringify(payload),
+                }).catch(() => {});
+            } catch {
+                return Promise.resolve();
+            }
+
+            // Also print to Strapi logs (terminal evidence).
+            try {
+                // Avoid dumping full payload; message + key ids only.
+                // eslint-disable-next-line no-console
+                console.log('[course-debug]', payload?.hypothesisId, payload?.location, payload?.data);
+            } catch {
+                // ignore
+            }
+        };
+
         const isAdmin = user.role_type === 'org_admin' || user.role_type === 'super_admin';
+
+        // #region agent log
+        debugPost({
+            sessionId: '78d289',
+            runId: 'initial',
+            hypothesisId: 'H2',
+            location: 'server/src/api/course/controllers/course.ts:create:entry',
+            message: 'Course create entry user context',
+            data: {
+                userId: user.id,
+                role_type: user.role_type,
+                isAdmin,
+            },
+            timestamp: Date.now(),
+        });
+        // #endregion agent log
 
         // Capture requested instructor BEFORE we strip it from the body
         const requestedInstructorRaw = (ctx.request.body as any)?.data?.instructor ?? null;
@@ -26,6 +91,22 @@ export default factories.createCoreController('api::course.course', ({ strapi })
             where: { id: user.id },
             populate: ['organization'],
         });
+
+        // #region agent log
+        debugPost({
+            sessionId: '78d289',
+            runId: 'initial',
+            hypothesisId: 'H1',
+            location: 'server/src/api/course/controllers/course.ts:create:user-org',
+            message: 'Resolved user organization for course create',
+            data: {
+                userId: user.id,
+                hasOrganization: !!fullUser?.organization,
+                organizationId: fullUser?.organization?.id ?? null,
+            },
+            timestamp: Date.now(),
+        });
+        // #endregion agent log
 
         // Strapi v5 content-api validation rejects unknown relation keys in the
         // create body. Strip instructor/organization so super.create() stays
@@ -38,6 +119,23 @@ export default factories.createCoreController('api::course.course', ({ strapi })
         if ((ctx.request.body as any).data?.organization !== undefined)
             delete (ctx.request.body as any).data.organization;
 
+        // #region agent log
+        debugPost({
+            sessionId: '78d289',
+            runId: 'initial',
+            hypothesisId: 'H3',
+            location: 'server/src/api/course/controllers/course.ts:create:pre-super',
+            message: 'Request payload state before super.create',
+            data: {
+                requestedInstructorRaw,
+                hasBodyInstructorKey: (ctx.request.body as any)?.data?.instructor !== undefined,
+                hasBodyOrganizationKey: (ctx.request.body as any)?.data?.organization !== undefined,
+                queryStatus: (ctx.query as any)?.status ?? null,
+            },
+            timestamp: Date.now(),
+        });
+        // #endregion agent log
+
         // Force Strapi Document Service to create as draft if user is instructor
         // By default, Strapi v5 REST API creates as published. 
         ctx.query = {
@@ -46,7 +144,27 @@ export default factories.createCoreController('api::course.course', ({ strapi })
         };
 
         // Run the standard Strapi create
-        const response: any = await super.create(ctx);
+        let response: any;
+        try {
+            response = await super.create(ctx);
+        } catch (err: any) {
+            // #region agent log
+            debugPost({
+                sessionId: '78d289',
+                runId: 'initial',
+                hypothesisId: 'H4',
+                location: 'server/src/api/course/controllers/course.ts:create:super-error',
+                message: 'super.create threw error',
+                data: {
+                    name: err?.name ?? null,
+                    message: err?.message ?? null,
+                    status: err?.status ?? null,
+                },
+                timestamp: Date.now(),
+            });
+            // #endregion agent log
+            throw err;
+        }
 
         // Strapi v5: super.create() sets ctx.body; the return value may be undefined.
         // We read from both to reliably get the created record's numeric id.
@@ -74,13 +192,50 @@ export default factories.createCoreController('api::course.course', ({ strapi })
 
         // ── Update relations in one DB call ──────────
         if (createdId && (instructorIdToAssign || organizationId)) {
-            await strapi.entityService.update('api::course.course', createdId, {
-                data: {
-                    ...(instructorIdToAssign ? { instructor: instructorIdToAssign } : {}),
-                    ...(organizationId ? { organization: organizationId } : {}),
-                },
-            });
+            try {
+                await strapi.entityService.update('api::course.course', createdId, {
+                    data: {
+                        ...(instructorIdToAssign ? { instructor: instructorIdToAssign } : {}),
+                        ...(organizationId ? { organization: organizationId } : {}),
+                    },
+                });
+            } catch (err: any) {
+                // #region agent log
+                debugPost({
+                    sessionId: '78d289',
+                    runId: 'initial',
+                    hypothesisId: 'H4',
+                    location: 'server/src/api/course/controllers/course.ts:create:update-error',
+                    message: 'entityService.update failed to set relations',
+                    data: {
+                        createdId,
+                        instructorIdToAssign: instructorIdToAssign ?? null,
+                        organizationId: organizationId ?? null,
+                        name: err?.name ?? null,
+                        message: err?.message ?? null,
+                    },
+                    timestamp: Date.now(),
+                });
+                // #endregion agent log
+                throw err;
+            }
         }
+
+        // #region agent log
+        debugPost({
+            sessionId: '78d289',
+            runId: 'initial',
+            hypothesisId: 'H4',
+            location: 'server/src/api/course/controllers/course.ts:create:success',
+            message: 'Course created and relations assigned (post-update)',
+            data: {
+                createdId,
+                instructorIdToAssign,
+                organizationId,
+            },
+            timestamp: Date.now(),
+        });
+        // #endregion agent log
 
         return response;
     },

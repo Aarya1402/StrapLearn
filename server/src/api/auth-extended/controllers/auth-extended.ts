@@ -77,6 +77,33 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
             .service('jwt')
             .issue({ id: user.id });
 
+        // Trigger Notification for Org Admin
+        if (orgPk && resolvedRole !== 'org_admin') {
+            try {
+                const orgAdmin = await strapi.db.query('plugin::users-permissions.user').findOne({
+                    where: {
+                        organization: orgPk,
+                        role_type: 'org_admin',
+                    },
+                });
+
+                if (orgAdmin) {
+                    await strapi.service('api::notification.notification').create({
+                        data: {
+                            user: orgAdmin.id,
+                            type: 'system',
+                            title: 'New Member Joined',
+                            message: `${username} has joined your organization as a ${resolvedRole}.`,
+                            link: `/dashboard/admin/users`,
+                            isRead: false,
+                        },
+                    });
+                }
+            } catch (error) {
+                console.error('Failed to send registration notification:', error);
+            }
+        }
+
         return ctx.send({
             jwt,
             user: {

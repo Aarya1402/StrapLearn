@@ -3,6 +3,7 @@
 import React from 'react';
 import { Search, CircleUser } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { NotificationCenter } from '@/components/NotificationCenter';
 
 interface TopNavProps {
   user: {
@@ -46,6 +47,7 @@ export function TopNav({ user }: TopNavProps) {
 
       {/* Actions */}
       <div className="flex items-center gap-6">
+         <NotificationCenter />
          <ThemeToggle />
          
          <div className="hidden flex-col items-end md:flex">
