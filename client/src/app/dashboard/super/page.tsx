@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { requireRole, getCurrentJwt } from '@/lib/server-auth';
 import { getSystemOverview } from '@/lib/analytics';
 import StatCard from '@/components/StatCard';
@@ -82,13 +83,13 @@ export default async function SuperDashboardPage() {
             <Command size={20} className="text-muted-foreground/30" />
           </div>
           <div className="space-y-4">
-            <a 
+            <Link 
               href="/dashboard/super/organizations/new" 
               className="group flex w-full items-center justify-between rounded-2xl bg-brand-500 p-6 text-white shadow-lg shadow-brand-500/20 transition-all hover:bg-brand-600 hover:-translate-y-1"
             >
               <span className="text-sm font-black uppercase tracking-widest">Deploy New Tenant</span>
               <ArrowUpRight size={20} className="transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
-            </a>
+            </Link>
             
             {[
               { label: 'System Analytics', icon: Activity, danger: false },

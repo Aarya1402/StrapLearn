@@ -46,8 +46,8 @@ A production-grade, multi-tenant LMS where multiple **Organizations (Tenants)** 
 | 9 | Assessments & Quizzes | 🟠 High | `[x]` ✅ |
 | 10 | Dashboard & Analytics | 🟡 Medium | `[x]` ✅ |
 | 11 | Notifications System | 🟡 Medium | `[x]` ✅ |
-| 12 | Content Versioning | 🟡 Medium | `[ ]` |
-| 13 | Search & Discovery | 🟢 Low | `[ ]` |
+| 12 | Content Versioning | 🟡 Medium | `[x]` ⏭️ |
+| 13 | Search & Discovery | 🟢 Low | `[x]` ✅ |
 | 14 | Certificate Generation | 🟢 Low | `[ ]` |
 
 ---
@@ -676,7 +676,7 @@ GET /api/analytics/student/:userId   → per-student report
 
 ---
 
-### MODULE 12 — Content Versioning (Draft & Publish)
+### MODULE 12 — Content Versioning (Draft & Publish) [SKIPPED BY USER]
 
 **Goal:** Workflow control — Instructors draft, Org Admins publish.
 
@@ -726,11 +726,11 @@ GET /api/courses?filters[title][$containsi]=react&filters[level]=beginner&filter
 - Instant results (no full-page reload)
 
 #### Deliverables
-- `[ ]` Strapi filtering working
-- `[ ]` Search input with debounce (300ms)
-- `[ ]` Filter sidebar component
-- `[ ]` URL-based filter state (shareable links)
-- `[ ]` Empty state UI
+- `[x]` Strapi filtering working
+- `[x]` Search input with debounce (400ms)
+- `[x]` Filter interface (Level, Category, Price, Sort)
+- `[x]` Real-time reactive state updates
+- `[x]` Empty state UI
 
 ---
 

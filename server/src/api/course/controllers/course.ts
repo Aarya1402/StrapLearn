@@ -251,30 +251,47 @@ export default factories.createCoreController('api::course.course', ({ strapi })
         const user = ctx.state.user;
         if (!user) return ctx.unauthorized('You must be logged in.');
 
-        const populate = {
+        const { q } = ctx.query as any;
+        console.log('[Course Controller] findMine searching for:', q);
+
+        const populateOpts: any = {
             thumbnail: true,
             organization: true,
             category: true,
-            lessons: { orderBy: { order: 'asc' } },
+            lessons: { sort: ['order:asc'] },
+        };
+
+        const baseFilters = { 
+            instructor: { id: user.id },
+            ...(q ? {
+                $or: [
+                    { title: { $containsi: q } },
+                    { slug: { $containsi: q } },
+                ]
+            } : {})
         };
 
         // Fetch published and draft versions in parallel
+        // Entity Service findMany supports filters and populate
         const [published, drafts] = await Promise.all([
-            strapi.db.query('api::course.course').findMany({
-                where: { instructor: { id: user.id }, publishedAt: { $notNull: true } },
-                populate,
+            strapi.entityService.findMany('api::course.course', {
+                filters: { ...baseFilters, publishedAt: { $notNull: true } },
+                populate: populateOpts,
             }),
-            strapi.db.query('api::course.course').findMany({
-                where: { instructor: { id: user.id }, publishedAt: null },
-                populate,
+            strapi.entityService.findMany('api::course.course', {
+                filters: { ...baseFilters, publishedAt: { $null: true } },
+                populate: populateOpts,
             }),
         ]);
 
-        // Exclude draft documents that already have a published version
-        const publishedDocIds = new Set(published.map((c: any) => c.documentId));
-        const uniqueDrafts = drafts.filter((c: any) => !publishedDocIds.has(c.documentId));
+        const publishedDocs = published as any[];
+        const draftDocs = drafts as any[];
 
-        const combined = [...published, ...uniqueDrafts].sort(
+        // Exclude draft documents that already have a published version
+        const publishedDocIds = new Set(publishedDocs.map((c: any) => c.documentId));
+        const uniqueDrafts = draftDocs.filter((c: any) => !publishedDocIds.has(c.documentId));
+
+        const combined = [...publishedDocs, ...uniqueDrafts].sort(
             (a: any, b: any) => new Date(b.updatedAt || 0).getTime() - new Date(a.updatedAt || 0).getTime()
         );
 

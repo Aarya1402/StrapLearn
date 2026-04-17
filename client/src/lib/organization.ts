@@ -23,8 +23,15 @@ export interface Organization {
 
 // ─── Get all organizations (Super Admin only) ────────────────────────────────
 
-export async function getAllOrganizations(jwt: string): Promise<Organization[]> {
-    const res = await fetch(`${STRAPI_URL}/api/organizations?populate=logo`, {
+export async function getAllOrganizations(jwt: string, query?: string): Promise<Organization[]> {
+    let url = `${STRAPI_URL}/api/organizations?populate=logo`;
+    
+    if (query) {
+        url += `&filters[$or][0][name][$containsi]=${encodeURIComponent(query)}`;
+        url += `&filters[$or][1][slug][$containsi]=${encodeURIComponent(query)}`;
+    }
+
+    const res = await fetch(url, {
         headers: { Authorization: `Bearer ${jwt}` },
         cache: 'no-store',
     });

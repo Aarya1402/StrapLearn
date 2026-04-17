@@ -2,16 +2,22 @@ import { requireRole, getCurrentJwt } from '@/lib/server-auth';
 import { getAllCoursesForDashboard, getMyCourses } from '@/lib/course';
 import { getCourseAnalytics } from '@/lib/analytics';
 import StatCard from '@/components/StatCard';
-import { Users, FileText, CheckCircle2, Plus, ArrowRight, BarChart3, Edit3 } from 'lucide-react';
+import { Users, FileText, CheckCircle2, Plus, ArrowRight, BarChart3, Edit3, Search } from 'lucide-react';
 
-export default async function InstructorDashboardPage() {
+export default async function InstructorDashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const params = await searchParams;
   const user = await requireRole('org_admin', 'instructor');
   const jwt = (await getCurrentJwt())!;
 
-  const courses = user.role_type === 'instructor'
-    ? await getMyCourses(jwt)
-    : await getAllCoursesForDashboard(jwt, user.organization?.slug);
-  
+  const query = params.q as string;
+  let courses = user.role_type === 'instructor'
+    ? await getMyCourses(jwt, query)
+    : await getAllCoursesForDashboard(jwt, user.organization?.slug, query);
+
   const drafts = courses.filter((c) => !c.publishedAt);
   const published = courses.filter((c) => (c as any).publishedAt);
 
@@ -72,67 +78,91 @@ export default async function InstructorDashboardPage() {
       </div>
 
       <div className="rounded-3xl border border-border bg-card shadow-premium overflow-hidden">
-        <div className="flex items-center justify-between border-b border-border bg-muted/30 px-8 py-6">
+        <div className="flex flex-col gap-4 border-b border-border bg-muted/30 px-8 py-6 sm:flex-row sm:items-center sm:justify-between">
           <h2 className="text-xl font-bold tracking-tight">Active Curriculum</h2>
+          
           <div className="flex items-center gap-4">
-             <a href="/dashboard/courses" className="text-sm font-semibold text-brand-600 hover:text-brand-700 hover:underline flex items-center gap-1">
-               Full Management
-               <ArrowRight size={14} />
-             </a>
+            <div className="relative group">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/50 transition-colors group-focus-within:text-brand-500" size={14} />
+              <form action="/dashboard/instructor" method="GET">
+                <input 
+                  name="q"
+                  type="text" 
+                  placeholder="Filter courses..." 
+                  defaultValue={params.q as string}
+                  className="h-9 w-64 rounded-xl border border-border bg-background pl-9 pr-4 text-xs font-medium ring-brand-500/10 transition-all focus:outline-none focus:ring-4 focus:bg-card focus:w-80"
+                />
+              </form>
+            </div>
+            
+            <a href="/dashboard/courses" className="hidden text-sm font-semibold text-brand-600 hover:text-brand-700 hover:underline sm:flex items-center gap-1">
+              Full Management
+              <ArrowRight size={14} />
+            </a>
           </div>
         </div>
         
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-border/50">
-                <th className="px-8 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">Course Details</th>
-                <th className="px-8 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">Status</th>
-                <th className="px-8 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground text-center">Enrollments</th>
-                <th className="px-8 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground text-center">Success Rate</th>
-                <th className="px-8 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border/30">
-              {coursesWithStats.map((course) => (
-                <tr key={course.documentId} className="group hover:bg-secondary/30 transition-colors">
-                  <td className="px-8 py-6">
-                    <div className="font-bold text-foreground leading-tight group-hover:text-brand-600 transition-colors">{course.title}</div>
-                    <div className="mt-1 text-xs font-medium text-muted-foreground uppercase tracking-wider">{course.level}</div>
-                  </td>
-                  <td className="px-8 py-6">
-                    <span className={`
-                      inline-flex items-center rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-widest leading-none
-                      ${course.publishedAt ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20' : 'bg-amber-50 text-amber-600 dark:bg-amber-900/20'}
-                    `}>
-                      {course.publishedAt ? 'Published' : 'Draft'}
-                    </span>
-                  </td>
-                  <td className="px-8 py-6 text-center font-bold text-lg text-foreground/80">{course.stats?.enrollmentCount || 0}</td>
-                  <td className="px-8 py-6 text-center">
-                    <div className="flex flex-col items-center gap-1">
-                      <span className="font-bold text-foreground/80">{course.stats?.completionCount || 0}</span>
-                      <div className="w-12 h-1 bg-secondary rounded-full overflow-hidden">
-                        <div 
-                          className="h-full bg-emerald-500 transition-all duration-500" 
-                          style={{ width: `${Math.min(100, ((course.stats?.completionCount || 0) / (course.stats?.enrollmentCount || 1)) * 100)}%` }} 
-                        />
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-8 py-6 text-right">
-                    <a 
-                      href={`/dashboard/courses/${course.documentId}`} 
-                      className="inline-flex items-center gap-2 rounded-xl bg-secondary px-4 py-2 text-sm font-bold text-foreground transition-all hover:bg-brand-500 hover:text-white"
-                    >
-                      <Edit3 size={14} />
-                      Edit
-                    </a>
-                  </td>
+          {coursesWithStats.length === 0 ? (
+            <div className="py-20 text-center">
+              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-secondary text-muted-foreground mx-auto">
+                <Search size={32} />
+              </div>
+              <h3 className="text-lg font-bold">No results found</h3>
+              <p className="text-muted-foreground text-sm">Try using a different search term.</p>
+            </div>
+          ) : (
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-border/50">
+                  <th className="px-8 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">Course Details</th>
+                  <th className="px-8 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">Status</th>
+                  <th className="px-8 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground text-center">Enrollments</th>
+                  <th className="px-8 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground text-center">Success Rate</th>
+                  <th className="px-8 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground text-right">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-border/30">
+                {coursesWithStats.map((course) => (
+                  <tr key={course.documentId} className="group hover:bg-secondary/30 transition-colors">
+                    <td className="px-8 py-6">
+                      <div className="font-bold text-foreground leading-tight group-hover:text-brand-600 transition-colors">{course.title}</div>
+                      <div className="mt-1 text-xs font-medium text-muted-foreground uppercase tracking-wider">{course.level}</div>
+                    </td>
+                    <td className="px-8 py-6">
+                      <span className={`
+                        inline-flex items-center rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-widest leading-none
+                        ${course.publishedAt ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20' : 'bg-amber-50 text-amber-600 dark:bg-amber-900/20'}
+                      `}>
+                        {course.publishedAt ? 'Published' : 'Draft'}
+                      </span>
+                    </td>
+                    <td className="px-8 py-6 text-center font-bold text-lg text-foreground/80">{course.stats?.enrollmentCount || 0}</td>
+                    <td className="px-8 py-6 text-center">
+                      <div className="flex flex-col items-center gap-1">
+                        <span className="font-bold text-foreground/80">{course.stats?.completionCount || 0}</span>
+                        <div className="w-12 h-1 bg-secondary rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-emerald-500 transition-all duration-500" 
+                            style={{ width: `${Math.min(100, ((course.stats?.completionCount || 0) / (course.stats?.enrollmentCount || 1)) * 100)}%` }} 
+                          />
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-8 py-6 text-right">
+                      <a 
+                        href={`/dashboard/courses/${course.documentId}`} 
+                        className="inline-flex items-center gap-2 rounded-xl bg-secondary px-4 py-2 text-sm font-bold text-foreground transition-all hover:bg-brand-500 hover:text-white"
+                      >
+                        <Edit3 size={14} />
+                        Edit
+                      </a>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
     </div>

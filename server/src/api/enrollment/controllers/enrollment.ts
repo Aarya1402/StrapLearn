@@ -63,15 +63,28 @@ export default factories.createCoreController('api::enrollment.enrollment', ({ s
             return ctx.unauthorized('You must be logged in.');
         }
 
-        const enrollments = await strapi.db.query('api::enrollment.enrollment').findMany({
-            where: { user: { id: user.id } },
+        const { q } = ctx.query as any;
+        console.log('[Enrollment Contoller] Searching for:', q);
+
+        const enrollments = await strapi.entityService.findMany('api::enrollment.enrollment', {
+            filters: {
+                user: { id: user.id },
+                ...(q ? {
+                    course: {
+                        $or: [
+                            { title: { $containsi: q } },
+                            { description: { $containsi: q } },
+                        ]
+                    }
+                } : {})
+            },
             populate: {
                 course: {
                     populate: ['thumbnail', 'organization', 'quizzes']
                 }
             },
-            orderBy: { enrolledAt: 'desc' },
-        });
+            sort: ['enrolledAt:desc'],
+        } as any);
 
         return (ctx.body = { data: enrollments });
     },

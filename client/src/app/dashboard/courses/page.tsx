@@ -7,15 +7,19 @@ import { Plus, Search, Filter, MoreVertical, Eye, Edit3, CheckCircle, FileText, 
 export default async function DashboardCoursesPage({ 
   searchParams 
 }: { 
-  searchParams: Promise<{ filter?: string }> 
+  searchParams: Promise<{ filter?: string; q?: string }> 
 }) {
+  const params = await searchParams;
   const user = await requireRole('org_admin', 'instructor');
   const jwt = (await getCurrentJwt())!;
-  const filter = (await searchParams).filter;
+  
+  const filter = params.filter;
+  const q = params.q;
+  const query = Array.isArray(q) ? q[0] : q;
 
-  const courses: Course[] = filter === 'my'
-    ? await getMyCourses(jwt)
-    : await getAllCoursesForDashboard(jwt, user.organization?.slug);
+  let courses: Course[] = filter === 'my'
+    ? await getMyCourses(jwt, query)
+    : await getAllCoursesForDashboard(jwt, user.organization?.slug, query);
 
   return (
     <div className="space-y-8">
@@ -24,7 +28,13 @@ export default async function DashboardCoursesPage({
           <h1 className="text-3xl font-black tracking-tight text-foreground">
             {filter === 'my' ? 'My Curriculum' : 'Global Catalog'}
           </h1>
-          <p className="text-muted-foreground mt-1 text-lg">Manage, curate and publish your educational content.</p>
+          {query ? (
+             <p className="text-muted-foreground text-sm">
+               Filtering by <span className="text-brand-600 font-black">"{query}"</span> in {filter === 'my' ? 'personal drafts' : 'organizational catalog'}
+             </p>
+          ) : (
+             <p className="text-muted-foreground mt-1 text-lg">Manage, curate and publish your educational content.</p>
+          )}
         </div>
         <a 
           href="/dashboard/courses/new" 
@@ -36,19 +46,22 @@ export default async function DashboardCoursesPage({
       </div>
 
       <div className="rounded-3xl border border-border bg-card shadow-premium overflow-hidden">
-        <div className="flex items-center justify-between border-b border-border bg-muted/30 px-8 py-6">
+        <div className="flex flex-col gap-4 border-b border-border bg-muted/30 px-8 py-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
-             <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
-                <input 
-                  type="text" 
-                  placeholder="Search courses..." 
-                  className="h-10 w-64 rounded-xl border border-input bg-background pl-10 pr-4 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-brand-500/20"
-                />
+             <div className="relative group">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/50 transition-colors group-focus-within:text-brand-500 pointer-events-none" size={16} />
+                <form action="/dashboard/courses" method="GET">
+                  {filter && <input type="hidden" name="filter" value={filter} />}
+                  <input 
+                    name="q"
+                    type="text" 
+                    placeholder="Search courses..." 
+                    defaultValue={query}
+                    className="h-10 w-64 rounded-xl border border-input bg-background pl-10 pr-4 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:w-80 transition-all font-bold"
+                  />
+                </form>
              </div>
-             <button className="flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-card text-muted-foreground hover:bg-secondary">
-               <Filter size={18} />
-             </button>
+             
           </div>
           <div className="flex h-10 items-center rounded-xl bg-secondary/50 p-1">
              <a 
@@ -82,9 +95,15 @@ export default async function DashboardCoursesPage({
                 <tr>
                   <td colSpan={5} className="px-8 py-20 text-center">
                     <div className="flex flex-col items-center gap-3 opacity-40">
-                      <FileText size={48} />
-                      <p className="text-sm font-bold uppercase tracking-widest">No courses identified in this segment.</p>
-                      <a href="/dashboard/courses/new" className="text-brand-600 underline">Deploy first course</a>
+                      {query ? <Search size={48} /> : <FileText size={48} />}
+                      <p className="text-sm font-bold uppercase tracking-widest">
+                        {query ? `Refined search yielded no matches for "${query}"` : "No courses identified in this segment."}
+                      </p>
+                      {query ? (
+                        <a href="/dashboard/courses" className="text-brand-600 underline">Clear search criteria</a>
+                      ) : (
+                        <a href="/dashboard/courses/new" className="text-brand-600 underline">Deploy first course</a>
+                      )}
                     </div>
                   </td>
                 </tr>

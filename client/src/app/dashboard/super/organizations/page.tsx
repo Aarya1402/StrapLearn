@@ -1,43 +1,60 @@
+import Link from 'next/link';
 import { requireRole, getCurrentJwt } from '@/lib/server-auth';
 import { getAllOrganizations } from '@/lib/organization';
-import { Layers, Plus, ExternalLink, ShieldCheck, ShieldAlert, Eye, Search, Filter, Mail, Building2 } from 'lucide-react';
+import { Layers, Plus, ExternalLink, ShieldCheck, ShieldAlert, Eye, Search, Filter, Mail, Building2, ArrowUpRight } from 'lucide-react';
 
-export default async function SuperOrganizationsPage() {
+export default async function SuperOrganizationsPage({
+  searchParams
+}: {
+  searchParams: Promise<{ q?: string }>
+}) {
+  const params = await searchParams;
+  const queryRaw = params.q;
+  const query = Array.isArray(queryRaw) ? queryRaw[0] : queryRaw;
+
   await requireRole('super_admin');
   const jwt = (await getCurrentJwt())!;
 
-  const organizations = await getAllOrganizations(jwt);
+  const organizations = await getAllOrganizations(jwt, query);
 
   return (
     <div className="space-y-8">
       <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-1">
           <h1 className="text-3xl font-black tracking-tight text-foreground">Cloud Tenants</h1>
-          <p className="text-muted-foreground text-lg">Manage multi-tenant isolation and global organization configurations.</p>
+          {query ? (
+             <p className="text-muted-foreground text-sm">
+               Filtering infrastructure for <span className="text-brand-600 font-black">&quot;{query}&quot;</span>
+             </p>
+          ) : (
+            <p className="text-muted-foreground text-lg">Manage multi-tenant isolation and global organization configurations.</p>
+          )}
         </div>
-        <a 
+        <Link 
           href="/dashboard/super/organizations/new" 
-          className="flex items-center justify-center gap-2 rounded-2xl bg-brand-500 px-6 py-3.5 text-sm font-bold text-white shadow-xl shadow-brand-500/20 transition-all hover:bg-brand-600 hover:-translate-y-1 active:scale-95"
+          className="group flex w-full sm:w-auto items-center justify-between rounded-2xl bg-brand-500 p-6 sm:px-6 sm:py-3.5 text-white shadow-lg shadow-brand-500/20 transition-all hover:bg-brand-600 hover:-translate-y-1"
         >
-          <Plus size={20} />
-          Deploy Organization
-        </a>
+          <span className="text-sm font-black uppercase tracking-widest">Deploy New Tenant</span>
+          <ArrowUpRight size={20} className="transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
+        </Link>
       </div>
 
       <div className="rounded-3xl border border-border bg-card shadow-premium overflow-hidden">
         <div className="flex items-center justify-between border-b border-border bg-muted/30 px-8 py-6">
           <div className="flex items-center gap-3">
-             <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
-                <input 
-                  type="text" 
-                  placeholder="Filter organizations..." 
-                  className="h-10 w-64 rounded-xl border border-input bg-background pl-10 pr-4 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-brand-500/20"
-                />
+             <div className="relative group">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/50 transition-colors group-focus-within:text-brand-500 pointer-events-none" size={16} />
+                <form action="/dashboard/super/organizations" method="GET">
+                  <input 
+                    name="q"
+                    type="text" 
+                    placeholder="Filter organizations..." 
+                    defaultValue={query}
+                    className="h-10 w-64 rounded-xl border border-input bg-background pl-10 pr-4 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:w-80 transition-all"
+                  />
+                </form>
              </div>
-             <button className="flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-card text-muted-foreground hover:bg-secondary">
-               <Filter size={18} />
-             </button>
+             
           </div>
         </div>
 
@@ -88,13 +105,13 @@ export default async function SuperOrganizationsPage() {
                     </div>
                   </td>
                   <td className="px-8 py-6 text-right">
-                    <a 
+                    <Link 
                       href={`/dashboard/super/organizations/${org.documentId}`} 
                       className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-card border border-border text-muted-foreground shadow-sm transition-all hover:bg-brand-500 hover:text-white"
                       title="Inspect Organization"
                     >
                       <Eye size={18} />
-                    </a>
+                    </Link>
                   </td>
                 </tr>
               ))}

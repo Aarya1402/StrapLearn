@@ -1,32 +1,48 @@
+import Link from 'next/link';
 import { requireRole, getCurrentJwt } from '@/lib/server-auth';
 import { getAllUsers } from '@/lib/auth';
 import { Users, Mail, UserCheck, Shield, Zap, Search, Filter, MoreVertical } from 'lucide-react';
 
-export default async function SuperUsersPage() {
+export default async function SuperUsersPage({
+  searchParams
+}: {
+  searchParams: Promise<{ q?: string }>
+}) {
+  const params = await searchParams;
+  const queryRaw = params.q;
+  const query = Array.isArray(queryRaw) ? queryRaw[0] : queryRaw;
+
   await requireRole('super_admin');
   const jwt = (await getCurrentJwt())!;
 
-  const users = await getAllUsers(jwt);
+  const users = await getAllUsers(jwt, query);
 
   return (
     <div className="space-y-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-1">
           <h1 className="text-3xl font-bold tracking-tight text-foreground">Global User Directory</h1>
-          <p className="text-muted-foreground">Manage and audit all users across the entire StrapLearn platform.</p>
+          {query ? (
+             <p className="text-muted-foreground text-sm">
+               Auditing accounts for <span className="text-brand-600 font-bold">"{query}"</span>
+             </p>
+          ) : (
+             <p className="text-muted-foreground text-lg">Manage and audit all users across the entire StrapLearn platform.</p>
+          )}
         </div>
         <div className="flex items-center gap-3">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
-            <input 
-              type="text" 
-              placeholder="Search users..." 
-              className="h-10 w-full rounded-xl border border-input bg-background pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 md:w-64"
-            />
+          <div className="relative group">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/50 transition-colors group-focus-within:text-brand-500 pointer-events-none" size={16} />
+            <form action="/dashboard/super/users" method="GET">
+              <input 
+                name="q"
+                type="text" 
+                placeholder="Search users..." 
+                defaultValue={query}
+                className="h-10 w-full rounded-xl border border-input bg-background pl-10 pr-4 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-brand-500/20 md:w-64 focus:md:w-80 transition-all font-bold"
+              />
+            </form>
           </div>
-          <button className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-card text-muted-foreground hover:bg-secondary">
-            <Filter size={18} />
-          </button>
         </div>
       </div>
 

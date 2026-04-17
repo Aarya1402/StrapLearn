@@ -3,7 +3,12 @@ import { getOrgUsers } from '@/lib/auth';
 import { Users, Mail, UserCheck, Shield, Zap, Search, Filter, MoreVertical, GraduationCap, School } from 'lucide-react';
 import { redirect } from 'next/navigation';
 
-export default async function OrgUsersPage() {
+export default async function OrgUsersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>;
+}) {
+  const params = await searchParams;
   const user = await requireRole('org_admin');
   const jwt = (await getCurrentJwt())!;
 
@@ -19,7 +24,8 @@ export default async function OrgUsersPage() {
 
   // Use id if available, fallback to documentId (Strapi mixed usage)
   const orgId = user.organization.id || user.organization.documentId;
-  const users = await getOrgUsers(jwt, String(orgId));
+  const query = params.q as string;
+  let users = await getOrgUsers(jwt, String(orgId), query);
 
   // Filter users by role for count indicators
   const students = users.filter(u => u.role_type === 'student');
@@ -40,17 +46,17 @@ export default async function OrgUsersPage() {
           </p>
         </div>
         <div className="flex items-center gap-4">
-          <div className="relative group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-brand-500" size={18} />
+          <form action="/dashboard/admin/users" method="GET" className="relative group">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-brand-500 pointer-events-none" size={18} />
             <input 
+              name="q"
               type="text" 
               placeholder="Search directory..." 
-              className="h-12 w-full rounded-2xl border border-input bg-card pl-12 pr-6 text-sm font-medium focus:outline-none focus:ring-4 focus:ring-brand-500/10 md:w-80 transition-all"
+              defaultValue={params.q}
+              className="h-12 w-full rounded-2xl border border-input bg-card pl-12 pr-6 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-brand-500/10 md:w-80 transition-all uppercase italic"
             />
-          </div>
-          <button className="flex h-12 w-12 items-center justify-center rounded-2xl border border-border bg-card text-muted-foreground transition-all hover:bg-secondary hover:text-foreground active:scale-95 shadow-sm">
-            <Filter size={20} />
-          </button>
+          </form>
+          
         </div>
       </div>
 
@@ -77,62 +83,75 @@ export default async function OrgUsersPage() {
 
       <div className="rounded-[2.5rem] border border-border bg-card shadow-premium overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-border bg-muted/20">
-                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">identity</th>
-                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">privilege level</th>
-                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">contact</th>
-                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">status</th>
-                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground text-right">actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border/50">
-              {users.map((u) => (
-                <tr key={u.id} className="group hover:bg-secondary/20 transition-all duration-300">
-                  <td className="px-8 py-6 whitespace-nowrap">
-                    <div className="flex items-center gap-4">
-                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-500/10 text-brand-600 font-black transition-transform group-hover:scale-110 shadow-sm border border-brand-500/10 group-hover:bg-brand-500 group-hover:text-white group-hover:shadow-brand-500/20">
-                        {u.username.charAt(0).toUpperCase()}
-                      </div>
-                      <div>
-                        <div className="font-black text-foreground text-base italic group-hover:text-brand-600 transition-colors uppercase tracking-tight">{u.username}</div>
-                        <div className="text-[9px] font-black text-muted-foreground/60 tracking-[0.2em]">UID: {String(u.id).substring(0, 8)}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-8 py-6 whitespace-nowrap">
-                    <span className={`
-                      inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-[10px] font-black uppercase tracking-widest
-                      ${u.role_type === 'org_admin' ? 'bg-amber-50 text-amber-600 dark:bg-amber-900/20 shadow-sm shadow-amber-500/5' : 
-                        u.role_type === 'instructor' ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-900/20 shadow-sm shadow-indigo-500/5' : 
-                        'bg-brand-50 text-brand-600 dark:bg-brand-900/20 shadow-sm shadow-brand-500/5'}
-                    `}>
-                      {u.role_type === 'org_admin' ? <Shield size={12} /> : u.role_type === 'instructor' ? <School size={12} /> : <GraduationCap size={12} />}
-                      {u.role_type.replace('_', ' ')}
-                    </span>
-                  </td>
-                  <td className="px-8 py-6 whitespace-nowrap">
-                    <div className="flex items-center gap-2 text-sm font-bold text-muted-foreground group-hover:text-foreground transition-colors italic lowercase">
-                      <Mail size={14} className="opacity-40" />
-                      {u.email}
-                    </div>
-                  </td>
-                  <td className="px-8 py-6 whitespace-nowrap">
-                    <div className="flex items-center gap-2">
-                         <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
-                         <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600/80">Active</span>
-                    </div>
-                  </td>
-                  <td className="px-8 py-6 text-right whitespace-nowrap">
-                    <button className="inline-flex h-10 w-10 items-center justify-center rounded-xl text-muted-foreground hover:bg-secondary hover:text-foreground transition-all hover:shadow-sm active:scale-95 border border-transparent hover:border-border">
-                      <MoreVertical size={18} />
-                    </button>
-                  </td>
+          {users.length === 0 ? (
+            <div className="py-24 text-center">
+              <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-[2rem] bg-secondary text-muted-foreground mx-auto">
+                <Search size={40} />
+              </div>
+              <h3 className="text-xl font-black italic uppercase text-foreground">No matches identified</h3>
+              <p className="mt-2 text-muted-foreground">The directory contains no records matching <span className="text-brand-600 font-bold whitespace-nowrap">"{params.q}"</span>.</p>
+              <a href="/dashboard/admin/users" className="mt-6 inline-flex items-center gap-2 font-black text-xs uppercase tracking-widest text-brand-600 hover:text-brand-700">
+                Clear search criteria
+              </a>
+            </div>
+          ) : (
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-border bg-muted/20">
+                  <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">identity</th>
+                  <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">privilege level</th>
+                  <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">contact</th>
+                  <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">status</th>
+                  <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground text-right">actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-border/50">
+                {users.map((u) => (
+                  <tr key={u.id} className="group hover:bg-secondary/20 transition-all duration-300">
+                    <td className="px-8 py-6 whitespace-nowrap">
+                      <div className="flex items-center gap-4">
+                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-500/10 text-brand-600 font-black transition-transform group-hover:scale-110 shadow-sm border border-brand-500/10 group-hover:bg-brand-500 group-hover:text-white group-hover:shadow-brand-500/20">
+                          {u.username.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <div className="font-black text-foreground text-base italic group-hover:text-brand-600 transition-colors uppercase tracking-tight">{u.username}</div>
+                          <div className="text-[9px] font-black text-muted-foreground/60 tracking-[0.2em]">UID: {String(u.id).substring(0, 8)}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-8 py-6 whitespace-nowrap">
+                      <span className={`
+                        inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-[10px] font-black uppercase tracking-widest
+                        ${u.role_type === 'org_admin' ? 'bg-amber-50 text-amber-600 dark:bg-amber-900/20 shadow-sm shadow-amber-500/5' : 
+                          u.role_type === 'instructor' ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-900/20 shadow-sm shadow-indigo-500/5' : 
+                          'bg-brand-50 text-brand-600 dark:bg-brand-900/20 shadow-sm shadow-brand-500/5'}
+                      `}>
+                        {u.role_type === 'org_admin' ? <Shield size={12} /> : u.role_type === 'instructor' ? <School size={12} /> : <GraduationCap size={12} />}
+                        {u.role_type.replace('_', ' ')}
+                      </span>
+                    </td>
+                    <td className="px-8 py-6 whitespace-nowrap">
+                      <div className="flex items-center gap-2 text-sm font-bold text-muted-foreground group-hover:text-foreground transition-colors italic lowercase">
+                        <Mail size={14} className="opacity-40" />
+                        {u.email}
+                      </div>
+                    </td>
+                    <td className="px-8 py-6 whitespace-nowrap">
+                      <div className="flex items-center gap-2">
+                           <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                           <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600/80">Active</span>
+                      </div>
+                    </td>
+                    <td className="px-8 py-6 text-right whitespace-nowrap">
+                      <button className="inline-flex h-10 w-10 items-center justify-center rounded-xl text-muted-foreground hover:bg-secondary hover:text-foreground transition-all hover:shadow-sm active:scale-95 border border-transparent hover:border-border">
+                        <MoreVertical size={18} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
     </div>

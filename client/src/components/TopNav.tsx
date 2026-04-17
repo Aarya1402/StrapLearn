@@ -4,6 +4,7 @@ import React from 'react';
 import { Search, CircleUser } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { NotificationCenter } from '@/components/NotificationCenter';
+import { useRouter } from 'next/navigation';
 
 interface TopNavProps {
   user: {
@@ -13,6 +14,16 @@ interface TopNavProps {
 }
 
 export function TopNav({ user }: TopNavProps) {
+  const router = useRouter();
+  const [searchTerm, setSearchTerm] = React.useState('');
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchTerm.trim()) {
+      router.push(`/courses?q=${encodeURIComponent(searchTerm.trim())}`);
+    }
+  };
+
   const getRoleLabel = () => {
     switch (user.role_type) {
         case 'super_admin': return 'Super Authority';
@@ -35,14 +46,7 @@ export function TopNav({ user }: TopNavProps) {
 
       {/* Search Bar / Status Protocol */}
       <div className="hidden lg:block">
-         <div className="relative group">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/40 transition-colors group-focus-within:text-brand-500" size={16} />
-            <input 
-              type="text" 
-              placeholder="Universal Research..." 
-              className="h-10 w-80 rounded-2xl border border-input bg-secondary px-10 text-xs font-bold ring-brand-500/20 transition-all focus:outline-none focus:ring-4 focus:w-96 focus:bg-card"
-            />
-         </div>
+        
       </div>
 
       {/* Actions */}

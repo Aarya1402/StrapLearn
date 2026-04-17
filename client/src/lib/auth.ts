@@ -77,8 +77,15 @@ export async function getMe(jwt: string): Promise<StrapiUser> {
 
 // ─── Get all users (Super Admin only) ────────────────────────────────────────
 
-export async function getAllUsers(jwt: string): Promise<StrapiUser[]> {
-    const res = await fetch(`${STRAPI_URL}/api/users?populate=organization`, {
+export async function getAllUsers(jwt: string, query?: string): Promise<StrapiUser[]> {
+    let url = `${STRAPI_URL}/api/users?populate=organization`;
+    
+    if (query) {
+        url += `&filters[$or][0][username][$containsi]=${encodeURIComponent(query)}`;
+        url += `&filters[$or][1][email][$containsi]=${encodeURIComponent(query)}`;
+    }
+
+    const res = await fetch(url, {
         headers: { Authorization: `Bearer ${jwt}` },
         cache: 'no-store',
     });
@@ -86,8 +93,15 @@ export async function getAllUsers(jwt: string): Promise<StrapiUser[]> {
     return res.json();
 }
 
-export async function getOrgUsers(jwt: string, organizationId: string): Promise<StrapiUser[]> {
-    const res = await fetch(`${STRAPI_URL}/api/users?populate=organization&filters[organization][id][$eq]=${organizationId}`, {
+export async function getOrgUsers(jwt: string, organizationId: string, query?: string): Promise<StrapiUser[]> {
+    let url = `${STRAPI_URL}/api/users?populate=organization&filters[organization][id][$eq]=${organizationId}`;
+    
+    if (query) {
+        url += `&filters[$or][0][username][$containsi]=${encodeURIComponent(query)}`;
+        url += `&filters[$or][1][email][$containsi]=${encodeURIComponent(query)}`;
+    }
+
+    const res = await fetch(url, {
         headers: { Authorization: `Bearer ${jwt}` },
         cache: 'no-store',
     });

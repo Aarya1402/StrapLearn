@@ -1,17 +1,47 @@
 import { getMyEnrollments } from '@/lib/course';
 import { getCurrentJwt, requireAuth } from '@/lib/server-auth';
-import { BookOpen, Calendar, CheckCircle2, ArrowRight } from 'lucide-react';
+import { BookOpen, Calendar, CheckCircle2, ArrowRight, Search } from 'lucide-react';
 
-export default async function MyCoursesPage() {
+export default async function MyCoursesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const params = await searchParams;
   const user = await requireAuth();
   const jwt = await getCurrentJwt();
-  const enrollments = jwt ? await getMyEnrollments(jwt) : [];
+  // Robust search param extraction
+  const queryRaw = params.q;
+  const query = Array.isArray(queryRaw) ? queryRaw[0] : queryRaw;
+  
+  let enrollments = jwt ? await getMyEnrollments(jwt, query) : [];
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">My Courses</h1>
-        <p className="text-muted-foreground text-lg">Continue your learning journey where you left off.</p>
+      <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">My Courses</h1>
+          {query ? (
+             <p className="text-muted-foreground text-sm">
+               Showing results for <span className="text-brand-600 font-bold">"{query}"</span>
+             </p>
+          ) : (
+             <p className="text-muted-foreground">Continue your learning journey where you left off.</p>
+          )}
+        </div>
+
+        <div className="relative group">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/50 transition-colors group-focus-within:text-brand-500 pointer-events-none" size={16} />
+          <form action="/dashboard/student/courses" method="GET">
+            <input 
+              name="q"
+              type="text" 
+              placeholder="Search my enrollments..." 
+              defaultValue={query}
+              className="h-10 w-72 rounded-2xl border border-border bg-card px-10 text-xs font-bold ring-brand-500/10 transition-all focus:outline-none focus:ring-4 focus:bg-background focus:w-80"
+            />
+          </form>
+        </div>
       </div>
       
       {enrollments.length === 0 ? (
@@ -19,9 +49,11 @@ export default async function MyCoursesPage() {
           <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-secondary text-muted-foreground">
             <BookOpen size={32} />
           </div>
-          <h3 className="text-xl font-bold mb-2">You haven't enrolled yet</h3>
+          <h3 className="text-xl font-bold mb-2">
+            {query ? 'No matching courses' : "You haven't enrolled yet"}
+          </h3>
           <p className="max-w-xs text-muted-foreground mb-8">
-            Explore our catalog and find the perfect course to start learning.
+            {query ? 'Try using a different search term or browse the full catalog.' : 'Explore our catalog and find the perfect course to start learning.'}
           </p>
           <a
             href="/courses"

@@ -59,6 +59,61 @@ export async function getPublishedCourses(orgSlug?: string): Promise<Course[]> {
     return data.data ?? [];
 }
 
+export async function searchCourses(params: {
+    query?: string;
+    level?: string;
+    category?: string;
+    isFree?: string;
+    orgSlug?: string;
+    sort?: string;
+}): Promise<Course[]> {
+    // Build parameters for the Strapi REST API
+    const searchParams = new URLSearchParams();
+    
+    // Always populate required relations
+    searchParams.append('populate[thumbnail]', 'true');
+    searchParams.append('populate[organization]', 'true');
+    searchParams.append('populate[category]', 'true');
+    searchParams.append('status', 'published');
+
+    // Applied Filters (Using Strapi Deep Filtering Syntax)
+    if (params.query) {
+        searchParams.append('filters[title][$containsi]', params.query);
+    }
+    
+    if (params.level && params.level !== 'all') {
+        searchParams.append('filters[level][$eq]', params.level);
+    }
+    
+    if (params.category && params.category !== 'all') {
+        searchParams.append('filters[category][slug][$eq]', params.category);
+    }
+    
+    if (params.isFree === 'true') {
+        searchParams.append('filters[isFree][$eq]', 'true');
+    } else if (params.isFree === 'false') {
+        searchParams.append('filters[isFree][$eq]', 'false');
+    }
+    
+    if (params.orgSlug) {
+        searchParams.append('filters[organization][slug][$eq]', params.orgSlug);
+    }
+
+    // Sorting
+    if (params.sort === 'alphabetical') {
+        searchParams.append('sort[0]', 'title:asc');
+    } else {
+        searchParams.append('sort[0]', 'publishedAt:desc');
+    }
+
+    const url = `${STRAPI_URL}/api/courses?${searchParams.toString()}`;
+    const res = await fetch(url, { cache: 'no-store' });
+    
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.data ?? [];
+}
+
 // ─── Public: single published course by slug ─────────────────────────────────
 
 export async function getCourseBySlug(slug: string, jwt?: string): Promise<Course | null> {
@@ -83,9 +138,11 @@ export async function getCourseBySlug(slug: string, jwt?: string): Promise<Cours
 export async function getAllCoursesForDashboard(
     jwt: string,
     orgSlug?: string,
+    query?: string
 ): Promise<Course[]> {
     let baseUrl = `${STRAPI_URL}/api/courses?${COURSE_POPULATE}`;
     if (orgSlug) baseUrl += `&filters[organization][slug][$eq]=${orgSlug}`;
+    if (query) baseUrl += `&filters[title][$containsi]=${encodeURIComponent(query)}`;
 
     // Strapi v5: endpoints return only published content by default.
     // Fetch published & drafts separately then combine.
@@ -114,9 +171,12 @@ export async function getAllCoursesForDashboard(
 // internally — bypassing the REST-API restriction on plugin::users-permissions.user
 // relations (filtering/populating them via the content-type API is blocked by Strapi v5).
 
-export async function getMyCourses(jwt: string): Promise<Course[]> {
+export async function getMyCourses(jwt: string, query?: string): Promise<Course[]> {
+    let url = `${STRAPI_URL}/api/courses/my`;
+    if (query) url += `?q=${encodeURIComponent(query)}`;
+
     const res = await fetch(
-        `${STRAPI_URL}/api/courses/my`,
+        url,
         { headers: { Authorization: `Bearer ${jwt}` }, cache: 'no-store' }
     );
     if (!res.ok) return [];
@@ -209,8 +269,11 @@ export async function enrollInCourse(courseId: string, jwt: string): Promise<boo
     return true;
 }
 
-export async function getMyEnrollments(jwt: string): Promise<any[]> {
-    const res = await fetch(`${STRAPI_URL}/api/enrollments/me`, {
+export async function getMyEnrollments(jwt: string, query?: string): Promise<any[]> {
+    let url = `${STRAPI_URL}/api/enrollments/me`;
+    if (query) url += `?q=${encodeURIComponent(query)}`;
+
+    const res = await fetch(url, {
         headers: { Authorization: `Bearer ${jwt}` },
         cache: 'no-store',
     });
