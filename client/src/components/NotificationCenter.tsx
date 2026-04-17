@@ -19,9 +19,18 @@ export function NotificationCenter() {
   const [mounted, setMounted] = useState(false);
 
   const popoverRef = React.useRef<HTMLDivElement>(null);
+  const notifiedIds = React.useRef<Set<string>>(new Set());
+
+  const requestNotificationPermission = async () => {
+    if (!('Notification' in window)) return;
+    if (Notification.permission === 'default') {
+      await Notification.requestPermission();
+    }
+  };
 
   useEffect(() => {
     setMounted(true);
+    requestNotificationPermission();
 
     const handleClickOutside = (event: MouseEvent) => {
       if (popoverRef.current && !popoverRef.current.contains(event.target as Node)) {
@@ -38,6 +47,24 @@ export function NotificationCenter() {
     };
   }, [isOpen]);
 
+  const showNativeNotification = (n: Notification) => {
+    if (!('Notification' in window) || Notification.permission !== 'granted') return;
+    
+    // Check if we've already notified for this ID in this session
+    if (notifiedIds.current.has(n.documentId)) return;
+    notifiedIds.current.add(n.documentId);
+
+    const notification = new Notification(n.title, {
+      body: n.message,
+      icon: '/favicon.ico',
+    });
+
+    notification.onclick = () => {
+      window.focus();
+      if (n.link) window.location.href = n.link;
+    };
+  };
+
   const fetchNotifications = async (opts?: { silent?: boolean }) => {
     try {
       if (!opts?.silent) {
@@ -47,6 +74,14 @@ export function NotificationCenter() {
 
       const data = await getNotifications();
       const notificationList = Array.isArray(data) ? data : [];
+      
+      // Notify for EACH unread notification not yet broadcasted
+      if (opts?.silent && notificationList.length > 0) {
+        notificationList
+          .filter(n => !n.isRead)
+          .forEach(n => showNativeNotification(n));
+      }
+
       setNotifications(notificationList);
       setUnreadCount(notificationList.filter(n => !n.isRead).length);
     } catch (error) {
