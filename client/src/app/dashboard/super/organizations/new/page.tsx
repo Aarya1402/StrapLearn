@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { requireRole } from '@/lib/server-auth';
 import { ChevronLeft } from 'lucide-react';
 import NewOrgForm from './NewOrgForm';
@@ -8,7 +9,7 @@ export default async function NewOrganizationPage() {
   return (
     <div style={{ padding: '0 0 40px 0' }}>
       <div style={{ marginBottom: 24 }}>
-        <a 
+        <Link 
           href="/dashboard/super/organizations" 
           style={{ 
             display: 'flex', 
@@ -21,7 +22,7 @@ export default async function NewOrganizationPage() {
           }}
         >
           <ChevronLeft size={16} /> Back to Organizations
-        </a>
+        </Link>
       </div>
 
       <div style={{ marginBottom: 32 }}>

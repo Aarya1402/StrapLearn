@@ -3,6 +3,8 @@ import { getCurrentJwt, requireAuth } from '@/lib/server-auth';
 import StatCard from '@/components/StatCard';
 import CourseProgressBar from '@/components/CourseProgressBar';
 import { BookOpen, CheckCircle, GraduationCap, Building2, ArrowRight } from 'lucide-react';
+import { Enrollment } from '@/lib/types/course';
+import Link from 'next/link';
 
 export default async function StudentDashboardPage() {
   const user = await requireAuth();
@@ -14,13 +16,13 @@ export default async function StudentDashboardPage() {
   
   // Fetch progress for each course
   const enrollmentsWithProgress = await Promise.all(
-    enrollments.map(async (e: any) => {
+    enrollments.map(async (e: Enrollment) => {
       const progress = await getCourseProgress(e.course.documentId, jwt);
       return { ...e, progress };
     })
   );
 
-  const completedCount = enrollments.filter((e: any) => e.isCompleted).length;
+  const completedCount = enrollments.filter((e) => e.isCompleted).length;
   const inProgressCount = enrollments.length - completedCount;
 
   return (
@@ -69,18 +71,18 @@ export default async function StudentDashboardPage() {
       <section className="space-y-6">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold tracking-tight">Your Learning Progress</h2>
-          <a 
+          <Link 
             href="/dashboard/student/courses" 
             className="group flex items-center gap-1.5 text-sm font-semibold text-brand-600 transition-colors hover:text-brand-700"
           >
             View All Courses
             <ArrowRight size={14} className="transition-transform group-hover:translate-x-0.5" />
-          </a>
+          </Link>
         </div>
         
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-2">
           {enrollmentsWithProgress.length > 0 ? (
-            enrollmentsWithProgress.slice(0, 4).map((enrollment: any) => (
+            enrollmentsWithProgress.slice(0, 4).map((enrollment) => (
               <div 
                 key={enrollment.documentId} 
                 className="group flex flex-col justify-between rounded-2xl border border-border bg-card p-6 shadow-premium transition-all duration-300 hover:-translate-y-1 hover:shadow-premium-hover"
@@ -107,12 +109,12 @@ export default async function StudentDashboardPage() {
                   <span className="text-xs font-medium text-muted-foreground">
                     {enrollment.progress.completedLessons} of {enrollment.progress.totalLessons} lessons
                   </span>
-                  <a 
+                  <Link 
                     href={`/courses/${enrollment.course.slug}`} 
                     className="inline-flex items-center justify-center rounded-xl bg-foreground px-5 py-2.5 text-sm font-bold text-background transition-all hover:bg-foreground/90 active:scale-95"
                   >
                     Continue
-                  </a>
+                  </Link>
                 </div>
               </div>
             ))
@@ -123,14 +125,14 @@ export default async function StudentDashboardPage() {
               </div>
               <h3 className="mb-1 text-lg font-semibold">No active enrollments</h3>
               <p className="mb-8 max-w-xs text-sm text-muted-foreground">
-                You haven't enrolled in any courses yet. Start your learning journey today.
+                You haven&apos;t enrolled in any courses yet. Start your learning journey today.
               </p>
-              <a 
+              <Link 
                 href="/courses" 
                 className="inline-flex items-center justify-center rounded-xl bg-brand-500 px-6 py-3 text-sm font-bold text-white transition-all hover:bg-brand-600 hover:shadow-lg active:scale-95 shadow-brand-500/20"
               >
                 Browse Catalog
-              </a>
+              </Link>
             </div>
           )}
         </div>

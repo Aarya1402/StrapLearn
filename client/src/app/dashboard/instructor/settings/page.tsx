@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { requireRole, getCurrentJwt } from '@/lib/server-auth';
 import { getOrganizationById } from '@/lib/organization';
 import OrganizationDetailsClient from '../../super/organizations/[id]/OrganizationDetailsClient';
@@ -21,7 +22,7 @@ export default async function InstructorOrgSettingsPage() {
   return (
     <div style={{ padding: '0 0 40px 0' }}>
       <div style={{ marginBottom: 24 }}>
-        <a 
+        <Link 
           href="/dashboard/instructor" 
           style={{ 
             display: 'flex', 
@@ -34,12 +35,12 @@ export default async function InstructorOrgSettingsPage() {
           }}
         >
           <ChevronLeft size={16} /> Back to Dashboard
-        </a>
+        </Link>
       </div>
       
       <div style={{ marginBottom: 32 }}>
         <h1 style={{ fontSize: 28, fontWeight: 'bold', marginBottom: 4 }}>Organization Profile</h1>
-        <p style={{ color: '#666' }}>View your organization's brand identity and system profile.</p>
+        <p style={{ color: '#666' }}>View your organization&apos;s brand identity and system profile.</p>
       </div>
       
       <OrganizationDetailsClient org={organization} hideEdit={true} />

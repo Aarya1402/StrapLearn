@@ -5,7 +5,7 @@ import StatCard from '@/components/StatCard';
 import { Layers, Users, BookOpen, Activity, Zap, ShieldAlert, Database, Globe, Command, ArrowUpRight, AlertTriangle } from 'lucide-react';
 
 export default async function SuperDashboardPage() {
-  const user = await requireRole('super_admin');
+  await requireRole('super_admin');
   const jwt = (await getCurrentJwt())!;
 
   const stats = await getSystemOverview(jwt);

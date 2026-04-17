@@ -4,8 +4,10 @@ import { useState } from 'react';
 import { updateOrgSuperAction } from '@/actions/organization.actions';
 import { ShieldCheck, ShieldAlert, Edit2, Check, X, Mail, Globe, Palette } from 'lucide-react';
 
+import { Organization } from '@/lib/organization';
+
 interface Props {
-  org: any;
+  org: Organization;
   hideEdit?: boolean;
 }
 
@@ -27,7 +29,8 @@ export default function OrganizationDetailsClient({ org: initialOrg, hideEdit = 
       const result = await updateOrgSuperAction(org.documentId, formData);
       setOrg(result.data);
       setIsEditing(false);
-    } catch (err) {
+    } catch (err: unknown) {
+      console.error('Update failed:', err);
       alert('Failed to update organization');
     } finally {
       setLoading(false);

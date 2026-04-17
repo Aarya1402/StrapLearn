@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useTheme } from "next-themes";
-import { Sun, Moon, Zap, Monitor } from "lucide-react";
+import { Sun, Moon, Zap } from "lucide-react";
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();

@@ -1,7 +1,6 @@
-import Link from 'next/link';
 import { requireRole, getCurrentJwt } from '@/lib/server-auth';
 import { getAllUsers } from '@/lib/auth';
-import { Users, Mail, UserCheck, Shield, Zap, Search, Filter, MoreVertical } from 'lucide-react';
+import { Users, Mail, UserCheck, Shield, Zap, Search, MoreVertical } from 'lucide-react';
 
 export default async function SuperUsersPage({
   searchParams
@@ -24,7 +23,7 @@ export default async function SuperUsersPage({
           <h1 className="text-3xl font-bold tracking-tight text-foreground">Global User Directory</h1>
           {query ? (
              <p className="text-muted-foreground text-sm">
-               Auditing accounts for <span className="text-brand-600 font-bold">"{query}"</span>
+               Auditing accounts for <span className="text-brand-600 font-bold">&quot;{query}&quot;</span>
              </p>
           ) : (
              <p className="text-muted-foreground text-lg">Manage and audit all users across the entire StrapLearn platform.</p>

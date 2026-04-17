@@ -16,8 +16,6 @@ import {
   TrendingUp,
   Compass,
   LayoutGrid,
-  ChevronRight,
-  Shield,
   Building,
   ArrowRight
 } from 'lucide-react';

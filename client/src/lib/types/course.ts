@@ -10,12 +10,27 @@ export interface Category {
     icon?: string;
 }
 
+export interface Enrollment {
+    id: number;
+    documentId: string;
+    course: Course;
+    isCompleted: boolean;
+    completedAt?: string;
+    progress?: number;
+}
+
+export interface Option {
+    id: string;
+    text: string;
+    isCorrect?: boolean;
+}
+
 export interface Lesson {
     id: number;
     documentId: string;
     title: string;
     slug: string;
-    content?: any[];        // Strapi blocks format
+    content?: unknown[];        // Strapi blocks format
     videoUrl?: string;
     videoProvider?: 'youtube' | 'vimeo' | 'upload';
     duration?: number;      // seconds
@@ -48,7 +63,7 @@ export interface Question {
     documentId: string;
     text: string;
     type: 'mcq' | 'true-false' | 'short-answer';
-    options?: any;
+    options?: Option[];
     correctAnswer: string;
     points: number;
 }
@@ -66,5 +81,24 @@ export interface QuizAttempt {
     score: number;
     isPassed: boolean;
     attemptedAt: string;
-    answers?: any[];
+    answers?: unknown[];
 }
+
+export interface DetailedResult {
+    questionDocumentId: string;
+    isCorrect: boolean;
+    isPartial?: boolean;
+    userAnswer: string;
+    correctAnswer: string;
+    aiGraded?: boolean;
+    feedback?: string;
+}
+
+export interface QuizResult {
+    isPassed: boolean;
+    score: number;
+    passingScore: number;
+    detailedResults: DetailedResult[];
+}
+
+

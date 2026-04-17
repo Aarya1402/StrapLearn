@@ -21,7 +21,7 @@ export function CourseCatalog({ courses, categories }: CourseCatalogProps) {
   const [query, setQuery] = useState(searchParams.get('q') || '');
 
   // Synchronize URL when filters change
-  const updateFilters = (updates: Record<string, string | null>) => {
+  const updateFilters = React.useCallback((updates: Record<string, string | null>) => {
     const params = new URLSearchParams(searchParams.toString());
     
     Object.entries(updates).forEach(([key, value]) => {
@@ -35,7 +35,7 @@ export function CourseCatalog({ courses, categories }: CourseCatalogProps) {
     startTransition(() => {
       router.push(`${pathname}?${params.toString()}`, { scroll: false });
     });
-  };
+  }, [searchParams, router, pathname]);
 
   // Debounced search for query only
   useEffect(() => {
@@ -45,7 +45,7 @@ export function CourseCatalog({ courses, categories }: CourseCatalogProps) {
       }
     }, 400);
     return () => clearTimeout(timer);
-  }, [query]);
+  }, [query, searchParams, updateFilters]);
 
   const clearFilters = () => {
     setQuery('');

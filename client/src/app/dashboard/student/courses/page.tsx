@@ -1,6 +1,9 @@
 import { getMyEnrollments } from '@/lib/course';
 import { getCurrentJwt, requireAuth } from '@/lib/server-auth';
 import { BookOpen, Calendar, CheckCircle2, ArrowRight, Search } from 'lucide-react';
+import { Enrollment } from '@/lib/types/course';
+import Link from 'next/link';
+import Image from 'next/image';
 
 export default async function MyCoursesPage({
   searchParams,
@@ -8,13 +11,13 @@ export default async function MyCoursesPage({
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const params = await searchParams;
-  const user = await requireAuth();
+  await requireAuth();
   const jwt = await getCurrentJwt();
   // Robust search param extraction
   const queryRaw = params.q;
   const query = Array.isArray(queryRaw) ? queryRaw[0] : queryRaw;
   
-  let enrollments = jwt ? await getMyEnrollments(jwt, query) : [];
+  const enrollments = jwt ? await getMyEnrollments(jwt, query) : [];
 
   return (
     <div className="space-y-8">
@@ -23,7 +26,7 @@ export default async function MyCoursesPage({
           <h1 className="text-3xl font-bold tracking-tight text-foreground">My Courses</h1>
           {query ? (
              <p className="text-muted-foreground text-sm">
-               Showing results for <span className="text-brand-600 font-bold">"{query}"</span>
+               Showing results for <span className="text-brand-600 font-bold">&quot;{query}&quot;</span>
              </p>
           ) : (
              <p className="text-muted-foreground">Continue your learning journey where you left off.</p>
@@ -50,21 +53,21 @@ export default async function MyCoursesPage({
             <BookOpen size={32} />
           </div>
           <h3 className="text-xl font-bold mb-2">
-            {query ? 'No matching courses' : "You haven't enrolled yet"}
+            {query ? 'No matching courses' : "You haven&apos;t enrolled yet"}
           </h3>
           <p className="max-w-xs text-muted-foreground mb-8">
             {query ? 'Try using a different search term or browse the full catalog.' : 'Explore our catalog and find the perfect course to start learning.'}
           </p>
-          <a
+          <Link
             href="/courses"
             className="inline-flex items-center justify-center rounded-xl bg-brand-500 px-8 py-3 text-sm font-bold text-white transition-all hover:bg-brand-600 hover:shadow-lg active:scale-95 shadow-brand-500/20"
           >
             Browse Catalog
-          </a>
+          </Link>
         </div>
       ) : (
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
-          {enrollments.map((enrollment: any) => {
+          {enrollments.map((enrollment: Enrollment) => {
             const course = enrollment.course;
             if (!course) return null;
             
@@ -78,9 +81,10 @@ export default async function MyCoursesPage({
                 {/* Thumbnail */}
                 <div className="relative aspect-video w-full overflow-hidden bg-muted">
                   {course.thumbnail?.url ? (
-                    <img
+                    <Image
                       src={course.thumbnail.url.startsWith('http') ? course.thumbnail.url : `http://localhost:1337${course.thumbnail.url}`}
                       alt={course.title}
+                      fill
                       className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
                     />
                   ) : (
@@ -113,7 +117,7 @@ export default async function MyCoursesPage({
                       Enrolled: {new Date(enrollment.enrolledAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                     </div>
                     
-                    <a
+                    <Link
                       href={`/courses/${course.slug}`}
                       className={`
                         flex items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold transition-all active:scale-[0.98]
@@ -125,7 +129,7 @@ export default async function MyCoursesPage({
                     >
                       {isCompleted ? 'Review Course' : 'Continue Learning'}
                       <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
-                    </a>
+                    </Link>
                   </div>
                 </div>
               </div>

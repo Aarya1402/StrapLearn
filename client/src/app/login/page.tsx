@@ -20,7 +20,7 @@ export default async function LoginPage() {
             Welcome back
           </h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            Don't have an account?{' '}
+            Don&apos;t have an account?{' '}
             <a href="/register" className="font-semibold text-brand-600 transition-colors hover:text-brand-700">
               Create an account
             </a>

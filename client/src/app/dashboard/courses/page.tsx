@@ -17,7 +17,7 @@ export default async function DashboardCoursesPage({
   const q = params.q;
   const query = Array.isArray(q) ? q[0] : q;
 
-  let courses: Course[] = filter === 'my'
+  const courses: Course[] = filter === 'my'
     ? await getMyCourses(jwt, query)
     : await getAllCoursesForDashboard(jwt, user.organization?.slug, query);
 

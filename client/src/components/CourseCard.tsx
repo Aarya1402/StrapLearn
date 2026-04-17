@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import type { Course } from '@/lib/types/course';
 import { BookOpen, Clock, ArrowRight } from 'lucide-react';
 
@@ -17,9 +18,10 @@ export function CourseCard({ course }: CourseCardProps) {
     >
       {course.thumbnail?.url ? (
         <div className="relative aspect-video w-full overflow-hidden">
-          <img
+          <Image
             src={`${STRAPI_URL}${course.thumbnail.url}`}
             alt={course.title}
+            fill
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />

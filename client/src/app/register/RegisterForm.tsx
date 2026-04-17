@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { registerAction } from '@/actions/auth.actions';
 import type { Organization } from '@/lib/organization';
+import type { RoleType } from '@/lib/types/auth';
 import { User, Mail, Lock, ShieldCheck, Building2, UserPlus, ArrowRight } from 'lucide-react';
 
 interface Props {
@@ -23,7 +24,7 @@ export default function RegisterForm({ organizations }: Props) {
           username: formData.get('username') as string,
           email: formData.get('email') as string,
           password: formData.get('password') as string,
-          role_type: formData.get('role_type') as any,
+          role_type: formData.get('role_type') as RoleType,
           organization: formData.get('organization') as string,
         });
       }}

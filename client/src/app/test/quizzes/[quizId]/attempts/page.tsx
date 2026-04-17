@@ -1,4 +1,5 @@
 import { getQuizAttempts, getQuizById } from '@/lib/course';
+import { QuizAttempt } from '@/lib/types/course';
 import { getCurrentJwt } from '@/lib/server-auth';
 import { notFound, redirect } from 'next/navigation';
 
@@ -26,7 +27,7 @@ export default async function QuizAttemptsPage({ params }: Props) {
         <p>No attempts found.</p>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {attempts.map((attempt: any, index: number) => (
+          {attempts.map((attempt: QuizAttempt, index: number) => (
             <a 
               key={attempt.documentId} 
               href={`/test/quizzes/${attempt.documentId}`}

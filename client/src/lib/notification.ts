@@ -1,6 +1,5 @@
 import type { Notification } from './types/notification';
 
-const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337';
 
 export async function getNotifications(): Promise<Notification[]> {
   const res = await fetch(`/api/notifications?sort=createdAt:desc&populate=*`, {

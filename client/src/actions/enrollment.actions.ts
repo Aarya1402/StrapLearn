@@ -26,10 +26,10 @@ export async function completeCourseAction(courseId: string, courseSlug: string)
     }
 
     const res = await completeCourse(courseId, jwt);
-    if (res) {
+    if (res && res.success) {
         revalidatePath(`/courses/${courseSlug}`);
-        return { success: true, ...res };
+        return { success: true, nextQuizId: res.nextQuizId };
     }
 
-    return { success: false, error: 'Failed to complete course' };
+    return { success: false, error: res?.error || 'Failed to complete course' };
 }

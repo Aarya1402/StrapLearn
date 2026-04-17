@@ -1,5 +1,4 @@
-import Image from "next/image";
-import { ArrowRight, BookOpen, Shield, BarChart3, Globe } from 'lucide-react';
+import { BookOpen, Shield, BarChart3, Globe } from 'lucide-react';
 
 export default function Home() {
   return (
@@ -54,7 +53,7 @@ export default function Home() {
                   href="/register"
                   className="rounded-2xl bg-brand-500 px-8 py-4 text-base font-bold text-white shadow-xl shadow-brand-500/20 transition-all hover:bg-brand-600 hover:translate-y-[-2px] active:scale-95"
                 >
-                  Start Building — It's free
+                  Start Building — It&apos;s free
                 </a>
                 <a href="#features" className="group text-sm font-bold leading-6 text-foreground hover:text-brand-600 transition-colors">
                   View Demo <span aria-hidden="true" className="inline-block transition-transform group-hover:translate-x-1">→</span>

@@ -2,10 +2,11 @@
 
 import React, { useState } from 'react';
 import { updateProfileAction } from '@/actions/auth.actions';
-import { User, Mail, Shield, Building, Lock, Save, Loader2, KeyRound } from 'lucide-react';
+import { User, Mail, Shield, Building, Save, Loader2, KeyRound } from 'lucide-react';
+import { StrapiUser } from '@/lib/types/auth';
 
 interface ProfileSettingsFormProps {
-  user: any;
+  user: StrapiUser;
   jwt: string;
 }
 
@@ -21,14 +22,15 @@ export default function ProfileSettingsForm({ user, jwt }: ProfileSettingsFormPr
     setMessage(null);
 
     try {
-      const data: any = { username };
+      const data: { username: string; password?: string } = { username };
       if (password) data.password = password;
 
       await updateProfileAction(user.id, jwt, data);
       setMessage({ type: 'success', text: 'Profile updated successfully. Changes reflected globally.' });
       setPassword('');
-    } catch (err: any) {
-      setMessage({ type: 'error', text: err.message || 'Failed to update profile.' });
+    } catch (err: unknown) {
+      const error = err as Error;
+      setMessage({ type: 'error', text: error.message || 'Failed to update profile.' });
     } finally {
       setIsUpdating(false);
     }

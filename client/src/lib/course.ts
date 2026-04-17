@@ -2,7 +2,7 @@
  * MODULE 5 — Course Fetch Helpers (Server Components only)
  */
 
-import type { Course, Category, Quiz, Question } from './types/course';
+import type { Course, Category, Quiz, Enrollment } from './types/course';
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337';
 
@@ -33,7 +33,7 @@ export async function getQuizById(documentId: string, jwt: string, includeDrafts
     return data.data ?? null;
 }
 
-export async function getQuizAttempts(documentId: string, jwt: string): Promise<any[]> {
+export async function getQuizAttempts(documentId: string, jwt: string): Promise<unknown[]> {
     const res = await fetch(
         `${STRAPI_URL}/api/quizzes/${documentId}/results`,
         {
@@ -269,7 +269,7 @@ export async function enrollInCourse(courseId: string, jwt: string): Promise<boo
     return true;
 }
 
-export async function getMyEnrollments(jwt: string, query?: string): Promise<any[]> {
+export async function getMyEnrollments(jwt: string, query?: string): Promise<Enrollment[]> {
     let url = `${STRAPI_URL}/api/enrollments/me`;
     if (query) url += `?q=${encodeURIComponent(query)}`;
 
@@ -284,10 +284,16 @@ export async function getMyEnrollments(jwt: string, query?: string): Promise<any
 
 export async function checkEnrollment(courseId: string, jwt: string): Promise<boolean> {
     const enrollments = await getMyEnrollments(jwt);
-    return enrollments.some((e: any) => e.course?.documentId === courseId);
+    return enrollments.some((e) => e.course?.documentId === courseId);
 }
 
-export async function completeCourse(courseId: string, jwt: string): Promise<any> {
+export interface CompleteCourseResponse {
+    success: boolean;
+    nextQuizId?: string;
+    error?: string;
+}
+
+export async function completeCourse(courseId: string, jwt: string): Promise<CompleteCourseResponse | null> {
     const res = await fetch(`${STRAPI_URL}/api/enrollments/complete`, {
         method: 'POST',
         headers: {

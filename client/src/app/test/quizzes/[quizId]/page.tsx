@@ -1,4 +1,5 @@
 import { getCurrentJwt } from '@/lib/server-auth';
+import { DetailedResult, Question } from '@/lib/types/course';
 import { notFound, redirect } from 'next/navigation';
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337';
@@ -44,8 +45,8 @@ export default async function QuizAttemptResultPage({ params }: Props) {
       <div style={{ marginTop: 32 }}>
         <h3>Review Answers</h3>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 16 }}>
-          {result.answers && result.answers.map((res: any, i: number) => {
-            const q = questions.find((question: any) => question.documentId === res.questionDocumentId);
+          {result.answers && result.answers.map((res: DetailedResult, i: number) => {
+            const q = questions.find((question: Question) => question.documentId === res.questionDocumentId);
             return (
               <div key={i} style={{ padding: 16, border: '1px solid #eee', borderRadius: 8, background: res.isCorrect ? '#f0fdf4' : '#fef2f2' }}>
                 <p style={{ fontWeight: 'bold', margin: 0 }}>{i + 1}. {q?.text || 'Question'}</p>

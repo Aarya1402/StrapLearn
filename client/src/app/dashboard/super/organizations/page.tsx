@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { requireRole, getCurrentJwt } from '@/lib/server-auth';
 import { getAllOrganizations } from '@/lib/organization';
-import { Layers, Plus, ExternalLink, ShieldCheck, ShieldAlert, Eye, Search, Filter, Mail, Building2, ArrowUpRight } from 'lucide-react';
+import { ShieldCheck, ShieldAlert, Eye, Search, Mail, ArrowUpRight } from 'lucide-react';
 
 export default async function SuperOrganizationsPage({
   searchParams

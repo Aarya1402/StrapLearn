@@ -3,7 +3,7 @@
 import { completeCourseAction } from '@/actions/enrollment.actions';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { CheckCircle2, Loader2, Trophy } from 'lucide-react';
+import { Loader2, Trophy } from 'lucide-react';
 
 interface Props {
   courseId: string;

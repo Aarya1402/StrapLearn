@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { requireRole, getCurrentJwt } from '@/lib/server-auth';
 import { getOrganizationById } from '@/lib/organization';
 import { notFound } from 'next/navigation';
@@ -16,14 +17,15 @@ export default async function SuperOrganizationDetailPage({ params }: Props) {
   let organization;
   try {
     organization = await getOrganizationById(id, jwt);
-  } catch (err) {
+  } catch (err: unknown) {
+    console.error('Fetch failed:', err);
     notFound();
   }
 
   return (
     <div style={{ padding: '0 0 40px 0' }}>
       <div style={{ marginBottom: 24 }}>
-        <a 
+        <Link 
           href="/dashboard/super/organizations" 
           style={{ 
             display: 'flex', 
@@ -36,7 +38,7 @@ export default async function SuperOrganizationDetailPage({ params }: Props) {
           }}
         >
           <ChevronLeft size={16} /> Back to Organizations
-        </a>
+        </Link>
       </div>
       
       <OrganizationDetailsClient org={organization} />

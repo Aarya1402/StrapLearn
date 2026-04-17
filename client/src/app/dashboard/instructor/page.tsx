@@ -3,6 +3,7 @@ import { getAllCoursesForDashboard, getMyCourses } from '@/lib/course';
 import { getCourseAnalytics } from '@/lib/analytics';
 import StatCard from '@/components/StatCard';
 import { Users, FileText, CheckCircle2, Plus, ArrowRight, BarChart3, Edit3, Search } from 'lucide-react';
+import Link from 'next/link';
 
 export default async function InstructorDashboardPage({
   searchParams,
@@ -14,12 +15,12 @@ export default async function InstructorDashboardPage({
   const jwt = (await getCurrentJwt())!;
 
   const query = params.q as string;
-  let courses = user.role_type === 'instructor'
+  const courses = user.role_type === 'instructor'
     ? await getMyCourses(jwt, query)
     : await getAllCoursesForDashboard(jwt, user.organization?.slug, query);
 
   const drafts = courses.filter((c) => !c.publishedAt);
-  const published = courses.filter((c) => (c as any).publishedAt);
+  const published = courses.filter((c) => c.publishedAt);
 
   // Fetch analytics for each course to get enrollment counts
   const orgSlug = user.organization?.slug || '';
@@ -38,16 +39,16 @@ export default async function InstructorDashboardPage({
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">Instructor Dashboard</h1>
           <p className="mt-1 text-muted-foreground text-lg">
-            Welcome back, <span className="font-semibold text-foreground">{user.username}</span>. You're teaching at <span className="text-brand-600 font-medium">{user.organization?.name}</span>.
+            Welcome back, <span className="font-semibold text-foreground">{user.username}</span>. You&apos;re teaching at <span className="text-brand-600 font-medium">{user.organization?.name}</span>.
           </p>
         </div>
-        <a 
+        <Link 
           href="/dashboard/courses/new" 
           className="flex items-center justify-center gap-2 rounded-2xl bg-brand-500 px-6 py-3.5 text-sm font-bold text-white shadow-xl shadow-brand-500/20 transition-all hover:bg-brand-600 hover:-translate-y-1 active:scale-[0.98]"
         >
           <Plus size={20} />
           Create New Course
-        </a>
+        </Link>
       </div>
 
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -95,10 +96,10 @@ export default async function InstructorDashboardPage({
               </form>
             </div>
             
-            <a href="/dashboard/courses" className="hidden text-sm font-semibold text-brand-600 hover:text-brand-700 hover:underline sm:flex items-center gap-1">
+            <Link href="/dashboard/courses" className="hidden text-sm font-semibold text-brand-600 hover:text-brand-700 hover:underline sm:flex items-center gap-1">
               Full Management
               <ArrowRight size={14} />
-            </a>
+            </Link>
           </div>
         </div>
         
@@ -150,13 +151,13 @@ export default async function InstructorDashboardPage({
                       </div>
                     </td>
                     <td className="px-8 py-6 text-right">
-                      <a 
+                      <Link 
                         href={`/dashboard/courses/${course.documentId}`} 
                         className="inline-flex items-center gap-2 rounded-xl bg-secondary px-4 py-2 text-sm font-bold text-foreground transition-all hover:bg-brand-500 hover:text-white"
                       >
                         <Edit3 size={14} />
                         Edit
-                      </a>
+                      </Link>
                     </td>
                   </tr>
                 ))}

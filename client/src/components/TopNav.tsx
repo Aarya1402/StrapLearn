@@ -1,10 +1,9 @@
 "use client";
 
 import React from 'react';
-import { Search, CircleUser } from 'lucide-react';
+import { CircleUser } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { NotificationCenter } from '@/components/NotificationCenter';
-import { useRouter } from 'next/navigation';
 
 interface TopNavProps {
   user: {
@@ -14,15 +13,7 @@ interface TopNavProps {
 }
 
 export function TopNav({ user }: TopNavProps) {
-  const router = useRouter();
-  const [searchTerm, setSearchTerm] = React.useState('');
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchTerm.trim()) {
-      router.push(`/courses?q=${encodeURIComponent(searchTerm.trim())}`);
-    }
-  };
 
   const getRoleLabel = () => {
     switch (user.role_type) {

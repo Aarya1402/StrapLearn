@@ -25,7 +25,7 @@ export default async function OrgUsersPage({
   // Use id if available, fallback to documentId (Strapi mixed usage)
   const orgId = user.organization.id || user.organization.documentId;
   const query = params.q as string;
-  let users = await getOrgUsers(jwt, String(orgId), query);
+  const users = await getOrgUsers(jwt, String(orgId), query);
 
   // Filter users by role for count indicators
   const students = users.filter(u => u.role_type === 'student');

@@ -1,14 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom';
 import { Bell, CheckCircle2, Info, BookOpen, GraduationCap, Clock } from 'lucide-react';
 import { getNotifications, markAsRead } from '@/lib/notification';
 import type { Notification } from '@/lib/types/notification';
-
-interface NotificationCenterProps {
-  jwt: string;
-}
 
 export function NotificationCenter() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -16,7 +11,6 @@ export function NotificationCenter() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [mounted, setMounted] = useState(false);
 
   const popoverRef = React.useRef<HTMLDivElement>(null);
   const notifiedIds = React.useRef<Set<string>>(new Set());
@@ -29,7 +23,6 @@ export function NotificationCenter() {
   };
 
   useEffect(() => {
-    setMounted(true);
     requestNotificationPermission();
 
     const handleClickOutside = (event: MouseEvent) => {
@@ -65,7 +58,7 @@ export function NotificationCenter() {
     };
   };
 
-  const fetchNotifications = async (opts?: { silent?: boolean }) => {
+  const fetchNotifications = React.useCallback(async (opts?: { silent?: boolean }) => {
     try {
       if (!opts?.silent) {
         setIsLoading(true);
@@ -90,14 +83,14 @@ export function NotificationCenter() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchNotifications();
     // Poll every 30 seconds for new notifications
     const interval = setInterval(() => fetchNotifications({ silent: true }), 30000);
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchNotifications]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -224,7 +217,7 @@ export function NotificationCenter() {
                     <p className="text-[9px] font-black uppercase tracking-[0.4em] text-muted-foreground/30">No active signals</p>
                   </div>
                 ) : (
-                  notifications.map((n) => (
+                  sortedNotifications.map((n) => (
                     <div 
                       key={n.documentId}
                       className={`relative flex flex-col gap-3 overflow-hidden rounded-[1.4rem] border border-border/50 bg-secondary/10 p-5 transition-all hover:bg-secondary/20 ${!n.isRead ? 'ring-1 ring-brand-500/20 bg-brand-50/5' : ''}`}

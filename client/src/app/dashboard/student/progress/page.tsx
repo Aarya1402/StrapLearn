@@ -2,9 +2,11 @@ import { getMyEnrollments, getCourseProgress, getQuizAttempts } from '@/lib/cour
 import { getCurrentJwt, requireAuth } from '@/lib/server-auth';
 import CourseProgressBar from '@/components/CourseProgressBar';
 import { BookOpen, Award, CheckCircle2, ArrowRight, BarChart3 } from 'lucide-react';
+import { Enrollment } from '@/lib/types/course';
+import Link from 'next/link';
 
 export default async function ProgressPage() {
-  const user = await requireAuth();
+  await requireAuth();
   const jwt = await getCurrentJwt();
   
   if (!jwt) return null;
@@ -13,7 +15,7 @@ export default async function ProgressPage() {
 
   // Fetch progress for each enrollment
   const enrollmentsWithProgress = await Promise.all(
-    enrollments.map(async (enrollment: any) => {
+    enrollments.map(async (enrollment: Enrollment) => {
       if (!enrollment.course) return { ...enrollment, progress: { percentage: 0 } };
       const progress = await getCourseProgress(enrollment.course.documentId, jwt);
       
@@ -59,7 +61,7 @@ export default async function ProgressPage() {
         </div>
       ) : (
         <div className="grid gap-6">
-          {enrollmentsWithProgress.map((item: any) => {
+          {enrollmentsWithProgress.map((item) => {
             const course = item.course;
             if (!course) return null;
             const progress = item.progress;
@@ -84,13 +86,13 @@ export default async function ProgressPage() {
                         </div>
                       </div>
                       
-                      <a 
+                      <Link 
                         href={`/courses/${course.slug}`}
                         className="inline-flex items-center justify-center gap-2 rounded-xl bg-foreground px-6 py-2.5 text-sm font-bold text-background transition-all hover:bg-foreground/90 active:scale-95 shadow-lg shadow-foreground/5"
                       >
                         {item.isCompleted ? 'Review' : 'Continue'}
                         <ArrowRight size={16} />
-                      </a>
+                      </Link>
                     </div>
 
                     <div className="max-w-2xl">
@@ -107,9 +109,9 @@ export default async function ProgressPage() {
                           <div className="flex items-center gap-2">
                             <Award size={16} className="text-emerald-500" />
                             {item.quizId ? (
-                              <a href={`/test/quizzes/${item.quizId}/attempts`} className="font-bold text-emerald-600 hover:text-emerald-700 hover:underline">
+                              <Link href={`/test/quizzes/${item.quizId}/attempts`} className="font-bold text-emerald-600 hover:text-emerald-700 hover:underline">
                                 Highest Score: {item.highestScore}%
-                              </a>
+                              </Link>
                             ) : (
                               <span className="font-bold text-emerald-600">
                                 Course Completed

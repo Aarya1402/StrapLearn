@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { submitQuizAction } from '@/actions/quiz.actions';
-import { Question, Quiz } from '@/lib/types/course';
+import { Quiz, QuizResult, DetailedResult, Option } from '@/lib/types/course';
 import { CheckCircle2, XCircle, AlertCircle, Loader2, Sparkles, RefreshCcw, Send } from 'lucide-react';
 
 interface Props {
@@ -12,7 +12,7 @@ interface Props {
 
 export default function QuizPlayer({ quiz, courseSlug }: Props) {
   const [answers, setAnswers] = useState<Record<string, string>>({});
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<QuizResult | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const questions = quiz.questions || [];
@@ -63,7 +63,7 @@ export default function QuizPlayer({ quiz, courseSlug }: Props) {
         <div className="space-y-6 pt-10 border-t border-border">
           <h3 className="text-xl font-bold">Review Your Answers</h3>
           <div className="space-y-4">
-            {result.detailedResults.map((res: any, i: number) => {
+            {result.detailedResults.map((res: DetailedResult, i: number) => {
               const q = questions.find(question => question.documentId === res.questionDocumentId);
               return (
                 <div 
@@ -101,7 +101,7 @@ export default function QuizPlayer({ quiz, courseSlug }: Props) {
 
                     {res.aiGraded && res.feedback && (
                       <div className="mt-3 rounded-xl bg-card p-3 text-xs italic text-muted-foreground shadow-sm">
-                        "{res.feedback}"
+                        &quot;{res.feedback}&quot;
                       </div>
                     )}
                   </div>
@@ -137,11 +137,16 @@ export default function QuizPlayer({ quiz, courseSlug }: Props) {
 
           <div className="grid gap-3">
             {q.type === 'mcq' || q.type === 'true-false' ? (
-              ((q.options && q.options.length > 0) ? q.options as string[] : (q.type === 'true-false' ? ['True', 'False'] : [])).map((opt) => {
-                const isSelected = answers[q.documentId] === opt;
+              ((q.options && q.options.length > 0) 
+                ? q.options 
+                : (q.type === 'true-false' 
+                    ? [{ id: 'true', text: 'True' }, { id: 'false', text: 'False' }] as Option[]
+                    : [])
+              ).map((opt) => {
+                const isSelected = answers[q.documentId] === opt.text;
                 return (
                   <label 
-                    key={opt} 
+                    key={opt.id || opt.text} 
                     className={`
                       group relative flex cursor-pointer items-center gap-3 overflow-hidden rounded-2xl border-2 px-6 py-4 transition-all
                       ${isSelected 
@@ -158,13 +163,13 @@ export default function QuizPlayer({ quiz, courseSlug }: Props) {
                     </div>
                     <input
                       type="radio"
-                      className="hidden"
                       name={q.documentId}
-                      value={opt}
+                      value={opt.text}
                       checked={isSelected}
-                      onChange={() => handleOptionChange(q.documentId, opt)}
+                      onChange={() => setAnswers({ ...answers, [q.documentId]: opt.text })}
+                      className="sr-only"
                     />
-                    <span className="font-semibold">{opt}</span>
+                    <span className="text-sm font-bold">{opt.text}</span>
                     {isSelected && <CheckCircle2 className="absolute right-4 top-1/2 -translate-y-1/2 text-brand-600" size={20} />}
                   </label>
                 );
