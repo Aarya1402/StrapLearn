@@ -1,23 +1,23 @@
+import axios from 'axios';
 import type { Notification } from './types/notification';
 
-
 export async function getNotifications(): Promise<Notification[]> {
-  const res = await fetch(`/api/notifications?sort=createdAt:desc&populate=*`, {
-    cache: 'no-store',
-  });
-  if (!res.ok) throw new Error('Failed to fetch notifications');
-  const { data } = await res.json();
-  return Array.isArray(data) ? data : [];
+  try {
+    const res = await axios.get(`/api/notifications?sort=createdAt:desc&populate=*`);
+    const { data } = res.data;
+    return Array.isArray(data) ? data : [];
+  } catch (error) {
+    throw new Error('Failed to fetch notifications');
+  }
 }
 
 export async function markAsRead(documentId: string) {
-  const res = await fetch(`/api/notifications/${documentId}`, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ data: { isRead: true } }),
-  });
-  if (!res.ok) throw new Error('Failed to mark notification as read');
-  return res.json();
+  try {
+    const res = await axios.put(`/api/notifications/${documentId}`, {
+      data: { isRead: true }
+    });
+    return res.data;
+  } catch (error) {
+    throw new Error('Failed to mark notification as read');
+  }
 }

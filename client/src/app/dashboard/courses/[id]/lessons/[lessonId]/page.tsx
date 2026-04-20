@@ -1,20 +1,15 @@
 import { requireRole, getCurrentJwt } from '@/lib/server-auth';
 import { updateLessonAction } from '@/actions/lesson.actions';
 import { notFound } from 'next/navigation';
+import api from '@/lib/axios';
 import { 
   ArrowLeft, 
   FileText, 
   Video, 
   Clock, 
-  Layers, 
   CheckCircle,
-  FileEdit,
-  Globe,
-  CirclePlay,
   Settings2
 } from 'lucide-react';
-
-const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337';
 
 interface Props { params: Promise<{ id: string; lessonId: string }> }
 
@@ -24,12 +19,15 @@ export default async function EditLessonPage({ params }: Props) {
   const { id: courseDocumentId, lessonId: lessonDocumentId } = await params;
 
   // Fetch lesson directly from Strapi
-  const res = await fetch(
-    `${STRAPI_URL}/api/lessons/${lessonDocumentId}?populate=attachments&status=draft`,
-    { headers: { Authorization: `Bearer ${jwt}` }, cache: 'no-store' }
-  );
-  if (!res.ok) notFound();
-  const { data: lesson } = await res.json();
+  let lesson;
+  try {
+    const res = await api.get(`/lessons/${lessonDocumentId}?populate=attachments&status=draft`, {
+        headers: { Authorization: `Bearer ${jwt}` }
+    });
+    lesson = res.data.data;
+  } catch (error) {
+    notFound();
+  }
 
   const textContent = lesson.content
     ?.map((block: any) => block.children?.map((c: any) => c.text).join(''))
@@ -140,4 +138,3 @@ export default async function EditLessonPage({ params }: Props) {
     </div>
   );
 }
-

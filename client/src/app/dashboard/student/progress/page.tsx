@@ -16,15 +16,16 @@ export default async function ProgressPage() {
   // Fetch progress for each enrollment
   const enrollmentsWithProgress = await Promise.all(
     enrollments.map(async (enrollment: Enrollment) => {
-      if (!enrollment.course) return { ...enrollment, progress: { percentage: 0 } };
+      if (!enrollment.course) return { ...enrollment, progress: { percentage: 0 }, highestScore: null, bestAttemptId: null, quizId: null };
       const progress = await getCourseProgress(enrollment.course.documentId, jwt);
       
       let highestScore: number | null = null;
       let bestAttemptId: string | null = null;
       let quizId: string | null = null;
 
-      if (enrollment.isCompleted && enrollment.course.quizzes?.length > 0) {
-        for (const quiz of enrollment.course.quizzes) {
+      const quizzes = enrollment.course.quizzes || [];
+      if (enrollment.isCompleted && quizzes.length > 0) {
+        for (const quiz of quizzes) {
           const attempts = await getQuizAttempts(quiz.documentId, jwt);
           if (attempts.length > 0) {
             quizId = quiz.documentId; // Store the quiz ID
@@ -82,7 +83,7 @@ export default async function ProgressPage() {
                           <CheckCircle2 size={14} className={item.isCompleted ? 'text-emerald-500' : 'text-amber-500'} />
                           {item.isCompleted ? 'Finished' : 'In Progress'}
                           <span>•</span>
-                          <span>Enrolled {new Date(item.enrolledAt).toLocaleDateString()}</span>
+                          <span>Enrolled {item.enrolledAt ? new Date(item.enrolledAt).toLocaleDateString() : 'N/A'}</span>
                         </div>
                       </div>
                       

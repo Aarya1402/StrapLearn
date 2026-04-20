@@ -2,6 +2,7 @@ import { getCourseBySlug, getQuizById, checkEnrollment } from '@/lib/course';
 import { getCurrentJwt } from '@/lib/server-auth';
 import { notFound, redirect } from 'next/navigation';
 import QuizPlayer from '@/components/QuizPlayer';
+import api from '@/lib/axios';
 
 interface Props {
   params: Promise<{ slug: string; quizId: string }>;
@@ -19,15 +20,18 @@ export default async function QuizPage({ params }: Props) {
   // Access check
   const isEnrolled = await checkEnrollment(course.documentId, jwt);
   if (!isEnrolled) {
-     const userRes = await fetch(`${process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337'}/api/users/me`, {
-         headers: { Authorization: `Bearer ${jwt}` },
-         cache: 'no-store'
-     });
-     const user = await userRes.json();
-     const hasAccessRole = ['super_admin', 'org_admin', 'instructor'].includes(user.role_type);
-     
-     if (!hasAccessRole) {
-        redirect(`/courses/${slug}?error=not-enrolled`);
+     try {
+       const userRes = await api.get(`/users/me`, {
+           headers: { Authorization: `Bearer ${jwt}` }
+       });
+       const user = userRes.data;
+       const hasAccessRole = ['super_admin', 'org_admin', 'instructor'].includes(user.role_type);
+       
+       if (!hasAccessRole) {
+          redirect(`/courses/${slug}?error=not-enrolled`);
+       }
+     } catch (error) {
+       redirect(`/courses/${slug}?error=not-enrolled`);
      }
   }
 

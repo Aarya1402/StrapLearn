@@ -1,31 +1,23 @@
 'use server';
 
+import api from '@/lib/axios';
 import { getCurrentJwt } from '@/lib/server-auth';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-
-const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337';
 
 export async function submitQuizAction(quizDocumentId: string, answers: Record<string, string>, courseSlug: string) {
     const jwt = await getCurrentJwt();
     if (!jwt) throw new Error('Unauthorized');
 
-    const res = await fetch(`${STRAPI_URL}/api/quizzes/${quizDocumentId}/submit`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${jwt}`,
-        },
-        body: JSON.stringify({ answers }),
-    });
-    if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err?.error?.message || 'Failed to submit quiz', { cause: err });
+    try {
+        const res = await api.post(`/quizzes/${quizDocumentId}/submit`, { answers }, {
+            headers: { Authorization: `Bearer ${jwt}` },
+        });
+        revalidatePath(`/courses/${courseSlug}/quizzes/${quizDocumentId}`);
+        return res.data;
+    } catch (error: any) {
+        throw new Error(error.response?.data?.error?.message || 'Failed to submit quiz');
     }
-
-    const data = await res.json();
-    revalidatePath(`/courses/${courseSlug}/quizzes/${quizDocumentId}`);
-    return data;
 }
 
 export async function createQuizAction(courseId: string, courseSlug: string, formData: FormData) {
@@ -39,22 +31,15 @@ export async function createQuizAction(courseId: string, courseSlug: string, for
         course: courseId,
     };
 
-    const res = await fetch(`${STRAPI_URL}/api/quizzes`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${jwt}`,
-        },
-        body: JSON.stringify({ data: payload }),
-    });
-
-    if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err?.error?.message || 'Failed to create quiz');
+    let newQuizId: string | null = null;
+    try {
+        const res = await api.post(`/quizzes`, { data: payload }, {
+            headers: { Authorization: `Bearer ${jwt}` },
+        });
+        newQuizId = res.data?.data?.documentId;
+    } catch (error: any) {
+        throw new Error(error.response?.data?.error?.message || 'Failed to create quiz');
     }
-
-    const json = await res.json();
-    const newQuizId = json?.data?.documentId;
 
     revalidatePath(`/dashboard/courses/${courseId}`);
     revalidatePath(`/courses/${courseSlug}`);
@@ -68,40 +53,28 @@ export async function publishQuizAction(quizDocumentId: string, courseId: string
     const jwt = await getCurrentJwt();
     if (!jwt) throw new Error('Unauthorized');
 
-    const res = await fetch(`${STRAPI_URL}/api/quizzes/${quizDocumentId}/publish`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${jwt}`,
-        },
-        body: JSON.stringify({ data: {} }),
-    });
-
-    if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err?.error?.message || 'Failed to publish quiz');
+    try {
+        await api.post(`/quizzes/${quizDocumentId}/publish`, { data: {} }, {
+            headers: { Authorization: `Bearer ${jwt}` },
+        });
+        revalidatePath(`/dashboard/courses/${courseId}`);
+    } catch (error: any) {
+        throw new Error(error.response?.data?.error?.message || 'Failed to publish quiz');
     }
-
-    revalidatePath(`/dashboard/courses/${courseId}`);
 }
 
 export async function deleteQuizAction(quizDocumentId: string, courseId: string) {
     const jwt = await getCurrentJwt();
     if (!jwt) throw new Error('Unauthorized');
 
-    const res = await fetch(`${STRAPI_URL}/api/quizzes/${quizDocumentId}`, {
-        method: 'DELETE',
-        headers: {
-            Authorization: `Bearer ${jwt}`,
-        },
-    });
-
-    if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err?.error?.message || 'Failed to delete quiz');
+    try {
+        await api.delete(`/quizzes/${quizDocumentId}`, {
+            headers: { Authorization: `Bearer ${jwt}` },
+        });
+        revalidatePath(`/dashboard/courses/${courseId}`);
+    } catch (error: any) {
+        throw new Error(error.response?.data?.error?.message || 'Failed to delete quiz');
     }
-
-    revalidatePath(`/dashboard/courses/${courseId}`);
 }
 
 export async function createQuestionAction(quizId: string, courseId: string, formData: FormData) {
@@ -120,41 +93,29 @@ export async function createQuestionAction(quizId: string, courseId: string, for
         quiz: quizId,
     };
 
-    const res = await fetch(`${STRAPI_URL}/api/questions`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${jwt}`,
-        },
-        body: JSON.stringify({ data: payload }),
-    });
-
-    if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err?.error?.message || 'Failed to create question');
+    try {
+        await api.post(`/questions`, { data: payload }, {
+            headers: { Authorization: `Bearer ${jwt}` },
+        });
+        revalidatePath(`/dashboard/courses/${courseId}`);
+        revalidatePath(`/dashboard/courses/${courseId}/quizzes/${quizId}`);
+    } catch (error: any) {
+        throw new Error(error.response?.data?.error?.message || 'Failed to create question');
     }
-
-    revalidatePath(`/dashboard/courses/${courseId}`);
-    revalidatePath(`/dashboard/courses/${courseId}/quizzes/${quizId}`);
 }
 
 export async function deleteQuestionAction(questionDocumentId: string, courseId: string, quizId: string) {
     const jwt = await getCurrentJwt();
     if (!jwt) throw new Error('Unauthorized');
 
-    const res = await fetch(`${STRAPI_URL}/api/questions/${questionDocumentId}`, {
-        method: 'DELETE',
-        headers: {
-            Authorization: `Bearer ${jwt}`,
-        },
-    });
-
-    if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err?.error?.message || 'Failed to delete question');
+    try {
+        await api.delete(`/questions/${questionDocumentId}`, {
+            headers: { Authorization: `Bearer ${jwt}` },
+        });
+        revalidatePath(`/dashboard/courses/${courseId}`);
+        revalidatePath(`/dashboard/courses/${courseId}/quizzes/${quizId}`);
+    } catch (error: any) {
+        throw new Error(error.response?.data?.error?.message || 'Failed to delete question');
     }
-
-    revalidatePath(`/dashboard/courses/${courseId}`);
-    revalidatePath(`/dashboard/courses/${courseId}/quizzes/${quizId}`);
 }
 

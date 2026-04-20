@@ -1,8 +1,7 @@
 import { getCurrentJwt } from '@/lib/server-auth';
 import { DetailedResult, Question } from '@/lib/types/course';
 import { notFound, redirect } from 'next/navigation';
-
-const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337';
+import api from '@/lib/axios';
 
 interface Props {
   params: Promise<{ quizId: string }>;
@@ -14,18 +13,16 @@ export default async function QuizAttemptResultPage({ params }: Props) {
   const jwt = await getCurrentJwt();
   if (!jwt) redirect('/login');
 
-  const res = await fetch(
-    `${STRAPI_URL}/api/quiz-attempts/${id}/my`,
-    {
+  let result;
+  try {
+    const res = await api.get(`/quiz-attempts/${id}/my`, {
       headers: { Authorization: `Bearer ${jwt}` },
-      cache: 'no-store',
-    }
-  );
-  if (!res.ok) {
+    });
+    result = res.data.data;
+  } catch (error) {
     notFound();
   }
 
-  const { data: result } = await res.json();
   if (!result) notFound();
 
   const questions = result.quiz?.questions || [];

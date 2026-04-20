@@ -1,17 +1,9 @@
-/**
- * MODULE 4 — Organization Fetch Helpers
- *
- * Used by Server Components to fetch organization data from Strapi.
- * All functions require a valid JWT (call from authenticated layouts/pages only).
- */
-
+import api from './axios';
 import type { StrapiUser } from './types/auth';
-
-const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337';
 
 export interface Organization {
     id: number;
-    documentId: string;  // Strapi v5: use this in REST API URLs
+    documentId: string;  
     name: string;
     slug: string;
     primaryColor?: string;
@@ -21,62 +13,51 @@ export interface Organization {
     users?: StrapiUser[];
 }
 
-// ─── Get all organizations (Super Admin only) ────────────────────────────────
-
 export async function getAllOrganizations(jwt: string, query?: string): Promise<Organization[]> {
-    let url = `${STRAPI_URL}/api/organizations?populate=logo`;
+    let url = `/organizations?populate=logo`;
     
     if (query) {
         url += `&filters[$or][0][name][$containsi]=${encodeURIComponent(query)}`;
         url += `&filters[$or][1][slug][$containsi]=${encodeURIComponent(query)}`;
     }
 
-    const res = await fetch(url, {
-        headers: { Authorization: `Bearer ${jwt}` },
-        cache: 'no-store',
-    });
-    if (!res.ok) throw new Error('Failed to fetch organizations');
-    const data = await res.json();
-    return data.data;
+    try {
+        const res = await api.get(url, {
+            headers: { Authorization: `Bearer ${jwt}` },
+        });
+        return res.data.data;
+    } catch (error) {
+        throw new Error('Failed to fetch organizations');
+    }
 }
-
-// ─── Get single organization by documentId (Strapi v5) ──────────────────────
 
 export async function getOrganizationById(documentId: string, jwt: string): Promise<Organization> {
-    const res = await fetch(
-        `${STRAPI_URL}/api/organizations/${documentId}?populate=logo`,
-        {
+    try {
+        const res = await api.get(`/organizations/${documentId}?populate=logo`, {
             headers: { Authorization: `Bearer ${jwt}` },
-            cache: 'no-store',
-        }
-    );
-    if (!res.ok) throw new Error('Failed to fetch organization');
-    const data = await res.json();
-    return data.data;
+        });
+        return res.data.data;
+    } catch (error) {
+        throw new Error('Failed to fetch organization');
+    }
 }
-
-// ─── Get organization by slug (used by tenant middleware) ────────────────────
 
 export async function getOrganizationBySlug(slug: string, jwt: string): Promise<Organization | null> {
-    const res = await fetch(
-        `${STRAPI_URL}/api/organizations?filters[slug][$eq]=${slug}&filters[isActive][$eq]=true`,
-        {
+    try {
+        const res = await api.get(`/organizations?filters[slug][$eq]=${slug}&filters[isActive][$eq]=true`, {
             headers: { Authorization: `Bearer ${jwt}` },
-            cache: 'no-store',
-        }
-    );
-    if (!res.ok) return null;
-    const data = await res.json();
-    return data.data?.[0] ?? null;
+        });
+        return res.data.data?.[0] ?? null;
+    } catch (error) {
+        return null;
+    }
 }
 
-// ─── Get Public Organizations (For registration dropdown) ────────────────────
-
 export async function getPublicOrganizations(): Promise<Organization[]> {
-    const res = await fetch(`${STRAPI_URL}/api/organizations?filters[isActive][$eq]=true`, {
-        cache: 'no-store',
-    });
-    if (!res.ok) return [];
-    const data = await res.json();
-    return data.data || [];
+    try {
+        const res = await api.get(`/organizations?filters[isActive][$eq]=true`);
+        return res.data.data || [];
+    } catch (error) {
+        return [];
+    }
 }

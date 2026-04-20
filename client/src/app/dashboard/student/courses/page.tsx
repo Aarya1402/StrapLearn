@@ -114,7 +114,7 @@ export default async function MyCoursesPage({
                   <div className="flex flex-col gap-4 mt-2">
                     <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
                       <Calendar size={14} />
-                      Enrolled: {new Date(enrollment.enrolledAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                      Enrolled: {enrollment.enrolledAt ? new Date(enrollment.enrolledAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A'}
                     </div>
                     
                     <Link

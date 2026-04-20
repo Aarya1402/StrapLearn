@@ -1,12 +1,9 @@
 'use server';
 
+import api from '@/lib/axios';
+import { getCurrentJwt } from '@/lib/server-auth';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-import { getCurrentJwt } from '@/lib/server-auth';
-
-const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337';
-
-// ─── Create Lesson ────────────────────────────────────────────────────────────
 
 export async function createLessonAction(courseDocumentId: string, formData: FormData) {
     const jwt = await getCurrentJwt();
@@ -23,22 +20,17 @@ export async function createLessonAction(courseDocumentId: string, formData: For
         course: courseDocumentId,
     };
 
-    const res = await fetch(`${STRAPI_URL}/api/lessons`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${jwt}` },
-        body: JSON.stringify({ data: payload }),
-    });
-
-    if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err?.error?.message || 'Failed to create lesson');
+    try {
+        await api.post(`/lessons`, { data: payload }, {
+            headers: { Authorization: `Bearer ${jwt}` },
+        });
+    } catch (error: any) {
+        throw new Error(error.response?.data?.error?.message || 'Failed to create lesson');
     }
 
     revalidatePath(`/dashboard/courses/${courseDocumentId}`);
     redirect(`/dashboard/courses/${courseDocumentId}`);
 }
-
-// ─── Update Lesson ────────────────────────────────────────────────────────────
 
 export async function updateLessonAction(lessonDocumentId: string, courseDocumentId: string, formData: FormData) {
     const jwt = await getCurrentJwt();
@@ -56,31 +48,29 @@ export async function updateLessonAction(lessonDocumentId: string, courseDocumen
         payload.content = [{ type: 'paragraph', children: [{ type: 'text', text: formData.get('content') }] }];
     }
 
-    const res = await fetch(`${STRAPI_URL}/api/lessons/${lessonDocumentId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${jwt}` },
-        body: JSON.stringify({ data: payload }),
-    });
-
-    if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err?.error?.message || 'Failed to update lesson');
+    try {
+        await api.put(`/lessons/${lessonDocumentId}`, { data: payload }, {
+            headers: { Authorization: `Bearer ${jwt}` },
+        });
+    } catch (error: any) {
+        throw new Error(error.response?.data?.error?.message || 'Failed to update lesson');
     }
 
     revalidatePath(`/dashboard/courses/${courseDocumentId}`);
     redirect(`/dashboard/courses/${courseDocumentId}`);
 }
 
-// ─── Delete Lesson ────────────────────────────────────────────────────────────
-
 export async function deleteLessonAction(lessonDocumentId: string, courseDocumentId: string) {
     const jwt = await getCurrentJwt();
     if (!jwt) throw new Error('Unauthorized');
 
-    await fetch(`${STRAPI_URL}/api/lessons/${lessonDocumentId}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${jwt}` },
-    });
+    try {
+        await api.delete(`/lessons/${lessonDocumentId}`, {
+            headers: { Authorization: `Bearer ${jwt}` },
+        });
+    } catch (error: any) {
+        // Silently ignore
+    }
 
     revalidatePath(`/dashboard/courses/${courseDocumentId}`);
     redirect(`/dashboard/courses/${courseDocumentId}`);

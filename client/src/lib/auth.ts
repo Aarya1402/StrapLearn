@@ -1,115 +1,74 @@
-/**
- * MODULE 3 — Auth Helpers (lib/auth.ts)
- *
- * All communication with Strapi's JWT auth endpoints.
- * JWT is stored in an httpOnly cookie (set by our Next.js API routes).
- */
-
+import api from './axios';
 import type { LoginPayload, RegisterPayload, StrapiAuthResponse, StrapiUser } from './types/auth';
 
-const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337';
-
-// ─── Login ───────────────────────────────────────────────────────────────────
-
 export async function login(payload: LoginPayload): Promise<StrapiAuthResponse> {
-    const res = await fetch(`${STRAPI_URL}/api/auth/local`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-    });
-
-    if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err?.error?.message || 'Login failed');
+    try {
+        const res = await api.post(`/auth/local`, payload);
+        const authData = res.data;
+        const fullUser = await getMe(authData.jwt);
+        return { jwt: authData.jwt, user: fullUser };
+    } catch (error: any) {
+        throw new Error(error.response?.data?.error?.message || 'Login failed');
     }
-
-    const authData = await res.json();
-
-    // Strapi's login response only returns basic user fields — NOT custom ones like role_type.
-    // We call getMe() with the returned JWT to get the full user object.
-    const fullUser = await getMe(authData.jwt);
-
-    return { jwt: authData.jwt, user: fullUser };
 }
-
-// ─── Register ─────────────────────────────────────────────────────────────────
 
 export async function register(payload: RegisterPayload): Promise<StrapiAuthResponse> {
-    // Uses custom endpoint that accepts role_type server-side
-    // (default /api/auth/local/register rejects custom fields)
-
-    const res = await fetch(`${STRAPI_URL}/api/auth/local/register-with-role`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-    });
-
-    if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err?.error?.message || 'Registration failed');
+    try {
+        const res = await api.post(`/auth/local/register-with-role`, payload);
+        const authData = res.data;
+        const fullUser = await getMe(authData.jwt);
+        return { jwt: authData.jwt, user: fullUser };
+    } catch (error: any) {
+        throw new Error(error.response?.data?.error?.message || 'Registration failed');
     }
-
-    const authData = await res.json();
-
-    // Enrich user with full fields (role_type, organization) via getMe()
-    const fullUser = await getMe(authData.jwt);
-
-    return { jwt: authData.jwt, user: fullUser };
 }
-
-// ─── Get current user (server-side, requires JWT) ────────────────────────────
 
 export async function getMe(jwt: string): Promise<StrapiUser> {
-    const res = await fetch(
-        `${STRAPI_URL}/api/users/me?populate=organization`,
-        {
+    try {
+        const res = await api.get(`/users/me?populate=organization`, {
             headers: { Authorization: `Bearer ${jwt}` },
-            cache: 'no-store',
-        }
-    );
-
-    if (!res.ok) {
+        });
+        return res.data;
+    } catch (error) {
         throw new Error('Failed to fetch user');
     }
-
-    return res.json();
 }
 
-// ─── Get all users (Super Admin only) ────────────────────────────────────────
-
 export async function getAllUsers(jwt: string, query?: string): Promise<StrapiUser[]> {
-    let url = `${STRAPI_URL}/api/users?populate=organization`;
+    let url = `/users?populate=organization`;
     
     if (query) {
         url += `&filters[$or][0][username][$containsi]=${encodeURIComponent(query)}`;
         url += `&filters[$or][1][email][$containsi]=${encodeURIComponent(query)}`;
     }
 
-    const res = await fetch(url, {
-        headers: { Authorization: `Bearer ${jwt}` },
-        cache: 'no-store',
-    });
-    if (!res.ok) throw new Error('Failed to fetch users');
-    return res.json();
+    try {
+        const res = await api.get(url, {
+            headers: { Authorization: `Bearer ${jwt}` },
+        });
+        return res.data;
+    } catch (error) {
+        throw new Error('Failed to fetch users');
+    }
 }
 
 export async function getOrgUsers(jwt: string, organizationId: string, query?: string): Promise<StrapiUser[]> {
-    let url = `${STRAPI_URL}/api/users?populate=organization&filters[organization][id][$eq]=${organizationId}`;
+    let url = `/users?populate=organization&filters[organization][id][$eq]=${organizationId}`;
     
     if (query) {
         url += `&filters[$or][0][username][$containsi]=${encodeURIComponent(query)}`;
         url += `&filters[$or][1][email][$containsi]=${encodeURIComponent(query)}`;
     }
 
-    const res = await fetch(url, {
-        headers: { Authorization: `Bearer ${jwt}` },
-        cache: 'no-store',
-    });
-    if (!res.ok) throw new Error('Failed to fetch organization users');
-    return res.json();
+    try {
+        const res = await api.get(url, {
+            headers: { Authorization: `Bearer ${jwt}` },
+        });
+        return res.data;
+    } catch (error) {
+        throw new Error('Failed to fetch organization users');
+    }
 }
-
-// ─── Role helpers ─────────────────────────────────────────────────────────────
 
 export function getDashboardPath(roleType: string): string {
     switch (roleType) {
@@ -140,20 +99,16 @@ export function isInstructor(roleType?: string) {
 export function isStudent(roleType?: string) {
     return roleType === 'student';
 }
+
 export async function updateUser(id: number, jwt: string, data: Partial<StrapiUser> & { password?: string }): Promise<StrapiUser> {
-    const res = await fetch(`${STRAPI_URL}/api/users/${id}`, {
-        method: 'PUT',
-        headers: { 
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${jwt}` 
-        },
-        body: JSON.stringify(data),
-    });
-
-    if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err?.error?.message || 'Update failed');
+    try {
+        const res = await api.put(`/users/${id}`, data, {
+            headers: { 
+                Authorization: `Bearer ${jwt}` 
+            },
+        });
+        return res.data;
+    } catch (error: any) {
+        throw new Error(error.response?.data?.error?.message || 'Update failed');
     }
-
-    return res.json();
 }

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337';
+import api from '@/lib/axios';
 
 export async function PUT(
   req: NextRequest,
@@ -12,15 +11,12 @@ export async function PUT(
 
   const body = await req.json();
 
-  const res = await fetch(`${STRAPI_URL}/api/notifications/${id}`, {
-    method: 'PUT',
-    headers: {
-      Authorization: `Bearer ${jwt}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(body),
-  });
-
-  const data = await res.json();
-  return NextResponse.json(data);
+  try {
+    const res = await api.put(`/notifications/${id}`, body, {
+      headers: { Authorization: `Bearer ${jwt}` },
+    });
+    return NextResponse.json(res.data);
+  } catch (error: any) {
+    return NextResponse.json(error.response?.data || { error: 'Failed to update notification' }, { status: error.response?.status || 500 });
+  }
 }

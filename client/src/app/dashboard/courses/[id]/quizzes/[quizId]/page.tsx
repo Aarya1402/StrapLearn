@@ -107,11 +107,12 @@ export default async function ManageQuizPage({ params }: Props) {
                   <div className="space-y-4">
                     {(q.type === 'mcq' || q.type === 'true-false') && (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {((q.options && q.options.length > 0) ? q.options as string[] : (q.type === 'true-false' ? ['True', 'False'] : [])).map((opt, i) => {
-                          const isCorrect = opt === q.correctAnswer;
+                        {((q.options && q.options.length > 0) ? q.options : (q.type === 'true-false' ? ['True', 'False'] : [])).map((opt: any, i) => {
+                          const optText = typeof opt === 'string' ? opt : opt.text;
+                          const isCorrect = optText === q.correctAnswer;
                           return (
                             <div key={i} className={`flex items-center justify-between p-4 rounded-2xl border transition-all ${isCorrect ? 'border-emerald-200 bg-emerald-50 text-emerald-700 shadow-sm' : 'border-border bg-secondary/30 text-muted-foreground'}`}>
-                              <span className="text-sm font-bold">{opt}</span>
+                              <span className="text-sm font-bold">{optText}</span>
                               {isCorrect && <CheckCircle2 size={16} className="text-emerald-500" />}
                             </div>
                           );
