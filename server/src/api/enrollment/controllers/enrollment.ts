@@ -105,11 +105,12 @@ export default factories.createCoreController('api::enrollment.enrollment', ({ s
         }
 
         // Find the enrollment
-        const enrollment = await strapi.db.query('api::enrollment.enrollment').findOne({
+        const enrollment: any = await strapi.db.query('api::enrollment.enrollment').findOne({
             where: {
                 user: { id: user.id },
                 course: { documentId: courseId },
             },
+            populate: ['course'], // Populate course here
         });
 
         if (!enrollment) {
@@ -132,9 +133,50 @@ export default factories.createCoreController('api::enrollment.enrollment', ({ s
             limit: 1
         });
 
+        // Generate Certificate
+        const existingCert = await strapi.db.query('api::certificate.certificate').findOne({
+            where: {
+                user: { id: user.id },
+                course: { documentId: courseId }
+            }
+        });
+
+        if (!existingCert) {
+            const certificateId = `CERT-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+            console.log(`[Certificate] Creating for User: ${user.id}, Course DocumentId: ${courseId}`);
+
+            try {
+                const newCert = await strapi.documents('api::certificate.certificate').create({
+                    data: {
+                        user: user.id,
+                        course: { documentId: courseId }, // Explicit relation mapping
+                        issuedAt: new Date(),
+                        certificateId: certificateId.toLowerCase(),
+                        pdfUrl: `/dashboard/student/certificates/${certificateId.toLowerCase()}`,
+                        status: 'published'
+                    }
+                });
+                console.log(`[Certificate] Successfully created:`, newCert.documentId);
+            } catch (error) {
+                console.error(`[Certificate] Creation failed:`, error);
+            }
+
+            // Notification for certificate
+            await strapi.service('api::notification.notification').create({
+                data: {
+                    user: user.id,
+                    type: 'system',
+                    title: 'New Certificate Issued 🏆',
+                    message: `Your certificate for ${enrollment.course.title} is ready.`,
+                    link: `/dashboard/student/certificates`,
+                    isRead: false,
+                },
+            });
+        }
+
         const nextQuizId = publishedQuizzes.length > 0 ? publishedQuizzes[0].documentId : null;
 
-        return (ctx.body = { data: updatedEnrollment, nextQuizId });
+        return (ctx.body = { success: true, data: updatedEnrollment, nextQuizId });
     },
 
     /**

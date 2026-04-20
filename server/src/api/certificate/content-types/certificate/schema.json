@@ -1,0 +1,37 @@
+{
+  "kind": "collectionType",
+  "collectionName": "certificates",
+  "info": {
+    "singularName": "certificate",
+    "pluralName": "certificates",
+    "displayName": "Certificate",
+    "description": "Student course completion certificates"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "user": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "course": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::course.course"
+    },
+    "issuedAt": {
+      "type": "datetime",
+      "required": true
+    },
+    "certificateId": {
+      "type": "uid",
+      "required": true
+    },
+    "pdfUrl": {
+      "type": "string"
+    }
+  }
+}

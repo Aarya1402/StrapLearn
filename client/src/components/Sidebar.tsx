@@ -17,7 +17,8 @@ import {
   Compass,
   LayoutGrid,
   Building,
-  ArrowRight
+  ArrowRight,
+  Award
 } from 'lucide-react';
 import { logoutAction } from '@/actions/auth.actions';
 
@@ -66,6 +67,7 @@ export function Sidebar({ user }: SidebarProps) {
           { label: 'Campus Home', href: '/dashboard/student', icon: <LayoutDashboard size={20} /> },
           { label: 'Enrolled Courses', href: '/dashboard/student/courses', icon: <BookOpen size={20} /> },
           { label: 'Learning Velocity', href: '/dashboard/student/progress', icon: <TrendingUp size={20} /> },
+          { label: 'Official Credentials', href: '/dashboard/student/certificates', icon: <Award size={20} /> },
           { label: 'Global Catalog', href: '/courses', icon: <Compass size={20} /> },
           { label: 'Account Security', href: '/dashboard/profile', icon: <Settings size={20} /> },
         ];

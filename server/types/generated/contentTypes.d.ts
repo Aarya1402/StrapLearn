@@ -499,6 +499,42 @@ export interface ApiCategoryCategory extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiCertificateCertificate extends Struct.CollectionTypeSchema {
+  collectionName: 'certificates';
+  info: {
+    description: 'Student course completion certificates';
+    displayName: 'Certificate';
+    pluralName: 'certificates';
+    singularName: 'certificate';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    certificateId: Schema.Attribute.UID & Schema.Attribute.Required;
+    course: Schema.Attribute.Relation<'manyToOne', 'api::course.course'>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    issuedAt: Schema.Attribute.DateTime & Schema.Attribute.Required;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::certificate.certificate'
+    > &
+      Schema.Attribute.Private;
+    pdfUrl: Schema.Attribute.String;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    user: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+  };
+}
+
 export interface ApiCourseCourse extends Struct.CollectionTypeSchema {
   collectionName: 'courses';
   info: {
@@ -1443,6 +1479,7 @@ declare module '@strapi/strapi' {
       'admin::transfer-token-permission': AdminTransferTokenPermission;
       'admin::user': AdminUser;
       'api::category.category': ApiCategoryCategory;
+      'api::certificate.certificate': ApiCertificateCertificate;
       'api::course.course': ApiCourseCourse;
       'api::enrollment.enrollment': ApiEnrollmentEnrollment;
       'api::lesson.lesson': ApiLessonLesson;

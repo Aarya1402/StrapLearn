@@ -1,9 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { submitQuizAction } from '@/actions/quiz.actions';
 import { Quiz, QuizResult, DetailedResult, Option } from '@/lib/types/course';
-import { CheckCircle2, XCircle, AlertCircle, Loader2, Sparkles, RefreshCcw, Send } from 'lucide-react';
+import { CheckCircle2, XCircle, AlertCircle, Loader2, Sparkles, RefreshCcw, Send, BookOpen } from 'lucide-react';
 
 interface Props {
   quiz: Quiz;
@@ -111,13 +112,23 @@ export default function QuizPlayer({ quiz, courseSlug }: Props) {
           </div>
         </div>
 
-        <button
-          onClick={() => window.location.reload()}
-          className="flex w-full items-center justify-center gap-2 rounded-2xl bg-foreground py-4 text-base font-bold text-background transition-all hover:bg-foreground/90 active:scale-[0.98]"
-        >
-          <RefreshCcw size={20} />
-          Retake Quiz
-        </button>
+        <div className="flex flex-col gap-3">
+          <button
+            onClick={() => window.location.reload()}
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-foreground py-4 text-base font-bold text-background transition-all hover:bg-foreground/90 active:scale-[0.98]"
+          >
+            <RefreshCcw size={20} />
+            Retake Quiz
+          </button>
+          
+          <Link
+            href={`/courses/${courseSlug}`}
+            className="flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-border py-4 text-base font-bold text-foreground transition-all hover:bg-secondary active:scale-[0.98]"
+          >
+            <BookOpen size={20} />
+            Back to Course
+          </Link>
+        </div>
       </div>
     );
   }

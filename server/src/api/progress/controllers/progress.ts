@@ -96,6 +96,47 @@ export default factories.createCoreController('api::progress.progress', ({ strap
                         isRead: false,
                     },
                 });
+
+                // Generate Certificate
+                const existingCert = await strapi.db.query('api::certificate.certificate').findOne({
+                    where: {
+                        user: { id: user.id },
+                        course: { documentId: courseId }
+                    }
+                });
+
+                if (!existingCert) {
+                    const certificateId = `CERT-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+                    console.log(`[Certificate] Creating for User: ${user.id}, Course DocumentId: ${courseId}`);
+                    
+                    try {
+                        const newCert = await strapi.documents('api::certificate.certificate').create({
+                            data: {
+                                user: user.id,
+                                course: { documentId: courseId },
+                                issuedAt: new Date(),
+                                certificateId: certificateId.toLowerCase(),
+                                pdfUrl: `/dashboard/student/certificates/${certificateId.toLowerCase()}`,
+                                status: 'published'
+                            },
+                        });
+                        console.log(`[Certificate] Successfully created:`, newCert.documentId);
+                    } catch (error) {
+                        console.error(`[Certificate] Creation failed:`, error);
+                    }
+
+                    // Notification for certificate
+                    await strapi.service('api::notification.notification').create({
+                        data: {
+                            user: user.id,
+                            type: 'system',
+                            title: 'New Certificate Issued 🏆',
+                            message: `Your certificate for ${enrollment.course.title} is ready.`,
+                            link: `/dashboard/student/certificates`,
+                            isRead: false,
+                        },
+                    });
+                }
             }
         }
 

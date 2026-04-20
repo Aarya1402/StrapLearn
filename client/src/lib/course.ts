@@ -256,3 +256,34 @@ export async function getCourseProgress(courseDocumentId: string, jwt: string) {
     }
 }
 
+export async function getMyCertificates(jwt: string) {
+    try {
+        const res = await api.get(`/certificates?populate[course]=true`, {
+            headers: { Authorization: `Bearer ${jwt}` },
+        });
+        return res.data.data ?? [];
+    } catch (error) {
+        return [];
+    }
+}
+
+export async function getCertificateByVerificationId(verificationId: string, jwt: string) {
+    try {
+        // Using a more standard Strapi v5 populate syntax
+        const res = await api.get(`/certificates`, {
+            params: {
+                'filters[certificateId][$eq]': verificationId,
+                'populate[course][populate][organization]': 'true',
+                'populate[user]': 'true'
+            },
+            headers: { Authorization: `Bearer ${jwt}` },
+        });
+        
+        const results = res.data.data;
+        return (results && results.length > 0) ? results[0] : null;
+    } catch (error) {
+        console.error('Failed to fetch certificate:', error);
+        return null;
+    }
+}
+

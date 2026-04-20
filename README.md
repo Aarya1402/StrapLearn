@@ -48,7 +48,7 @@ A production-grade, multi-tenant LMS where multiple **Organizations (Tenants)** 
 | 11 | Notifications System | 🟡 Medium | `[x]` ✅ |
 | 12 | Content Versioning | 🟡 Medium | `[x]` ⏭️ |
 | 13 | Search & Discovery | 🟢 Low | `[x]` ✅ |
-| 14 | Certificate Generation | 🟢 Low | `[ ]` |
+| 14 | Certificate Generation | 🟢 Low | `[x]` ✅ |
 
 ---
 
@@ -758,11 +758,11 @@ GET /api/courses?filters[title][$containsi]=react&filters[level]=beginner&filter
 - Generate client-side or as a Next.js API Route
 
 #### Deliverables
-- `[ ]` Certificate content type
-- `[ ]` Auto-generate on completion
-- `[ ]` PDF download page (`/certificates/[id]`)
-- `[ ]` Certificate gallery in student dashboard
-- `[ ]` Shareable certificate URL
+- `[x]` Certificate content type
+- `[x]` Auto-generate on completion
+- `[x]` PDF download page (`/certificates/[id]`)
+- `[x]` Certificate gallery in student dashboard
+- `[x]` Shareable certificate URL
 
 ---
 
