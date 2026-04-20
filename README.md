@@ -46,9 +46,8 @@ A production-grade, multi-tenant LMS where multiple **Organizations (Tenants)** 
 | 9 | Assessments & Quizzes | 🟠 High | `[x]` ✅ |
 | 10 | Dashboard & Analytics | 🟡 Medium | `[x]` ✅ |
 | 11 | Notifications System | 🟡 Medium | `[x]` ✅ |
-| 12 | Content Versioning | 🟡 Medium | `[x]` ⏭️ |
-| 13 | Search & Discovery | 🟢 Low | `[x]` ✅ |
-| 14 | Certificate Generation | 🟢 Low | `[x]` ✅ |
+| 12 | Search & Discovery | 🟢 Low | `[x]` ✅ |
+| 13 | Certificate Generation | 🟢 Low | `[x]` ✅ |
 
 ---
 
@@ -676,41 +675,9 @@ GET /api/analytics/student/:userId   → per-student report
 
 ---
 
-### MODULE 12 — Content Versioning (Draft & Publish) [SKIPPED BY USER]
-
-**Goal:** Workflow control — Instructors draft, Org Admins publish.
-
-#### Strapi Config
-- Enable Draft & Publish on Course and Lesson content types
-- Set permissions:
-  - `Instructor` role: can `create`, `update` — cannot `publish`
-  - `Org Admin` role: can `create`, `update`, `publish`, `unpublish`
-
-#### Strapi API: Separate publish endpoint
-```
-PUT /api/courses/:id/publish   → Org Admin only
-PUT /api/courses/:id/unpublish → Org Admin only
-```
-
-#### Custom Policy: `is-org-admin`
-```js
-// src/policies/is-org-admin.js
-module.exports = async (policyContext, config, { strapi }) => {
-  const { user } = policyContext.state;
-  return user.role_type === 'org_admin';
-};
-```
-
-#### Deliverables
-- `[ ]` Draft & Publish enabled for courses and lessons
-- `[ ]` Role permissions configured correctly
-- `[ ]` Admin UI shows "Publish" button only for Org Admins
-- `[ ]` Frontend shows only published content to students
-- `[ ]` Draft preview for Instructors
-
 ---
 
-### MODULE 13 — Search & Discovery
+### MODULE 12 — Search & Discovery
 
 **Goal:** Find courses quickly with filters.
 
@@ -734,7 +701,7 @@ GET /api/courses?filters[title][$containsi]=react&filters[level]=beginner&filter
 
 ---
 
-### MODULE 14 — Certificate Generation
+### MODULE 13 — Certificate Generation
 
 **Goal:** Auto-generate PDF certificates on course completion.
 
@@ -793,7 +760,7 @@ Showcase multi-tenancy in the interview:
 - Modules 9, 10, 11
 
 ### Phase 4 — Polish (Week 4)
-- Modules 12, 13, 14
+- Modules 12, 13
 - Postman collection
 - README & deployment
 
